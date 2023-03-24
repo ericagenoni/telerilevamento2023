@@ -1,0 +1,52 @@
+#calculating spectral index
+
+install.packages("raster")
+library (raster)
+
+setwd("C:/lab/p224r63_2011.grd")
+
+#exercise : import defor1_.png
+l1992 <- brick("defor1_.png")
+
+#attention:Warning message: [rast] unknown extent -> not a problem
+
+#per ogni banda 341292 pixel, immagine più leggera (moltiplicare per le tre bande)
+
+#exercise: plot the image via plot RGB
+
+plotRGB(l1992, r=1,  g= 2, b =3, stretch="Lin")
+#vegetazione rossa, riflette molto quindi l'infrarosso è la banda n°1
+#NIR=1
+#RED=2
+#GREEN=3
+
+plotRGB(l1992, r=1,  g= 2, b =3, stretch="Lin")
+
+export: 1, 2, 3
+#NIR diventa 1 solitamente, red diventa 2, green 
+
+#acqua assorbe tutto infrarosso, dovrebbe essere nero ma in questo caso il particellato disciolto impedisce l'assorbimento 
+
+#calcoliamo l'indice vegetazionale
+
+#exercise: caculate DVI for 1992
+
+dvi1992 =  l1992[[1]] - l1992[[2]]
+dvi1992
+#calcolo differenza per ogni pixel, è anche un calcolo possiamo mettere l'= al posto dell'assegnazione
+
+
+cl <- colorRampPalette(c('darkblue','yellow','red','black'))(100) # specifying a color scheme
+plot(dvi1992, col=cl)
+
+plot(l1992)
+#bande vanno da 0 a 255, perchè? varianza varia da 0 a 1.
+#Shannon-> teoria dell'informazione, si basava sul fatto di dare un valore ai numeri.
+#Shannon information -> 1 bit = una sola informazione o 0 o 1
+#se ho due bit ho 4 informazioni  00,01,10,11
+#tre bit 000,001,100,101 etc. ho otto possibili valori, ad ogni blocco do un valore
+
+#in gran parte dei casi al posto di utilizzare immagine originale, trasformo tutto ni bit e faccio i valori in 8 bit, 2^8=256, vanno da 0 a 255
+#range dei valori DVI 
+# avrò da -255 a 255 nel caso di un immagine ad 8bit
+
