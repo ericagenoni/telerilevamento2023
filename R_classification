@@ -1,0 +1,113 @@
+#classification of remote sensing data via RStoolbox
+
+library(raster)
+install.packages("RStoolbox")
+library(RStoolbox)
+
+
+setwd("C:/lab/p224r63_2011.grd") # Windows
+
+# data import
+so <- brick("Solar_Orbiter_s_first_views_of_the_Sun_pillars.jpg")
+
+plotRGB(so, 1, 2, 3, stretch="lin")
+plotRGB(so, 1, 2, 3, stretch="hist")
+#per vedere una profondità superiore per quanto riguarda differenziazioni
+
+
+# Classifying the solar data
+#abbiamo dati originali di riflettanza, vogliamo classificarlo in tre classi.
+
+
+# https://rspatial.org/raster/rs/4-unsupclassification.html
+#primo passaggio per utilizzare la funzione successiva di classificazione, dobbiamo trasformare l'immagine, i colori in una serie di valori continui. un tabulato con tutti i valori. Getvalues è una funzione che prende i valori da un'immagine e li rimette su un tabulato.
+
+# 1. Get all the single values
+singlenr <- getValues(so)
+singlenr
+#singlenr = single numbers
+#getvalues= prende ogni singolo pixel dell'immagine e lo rimette in forma vettoriale. I valori non sono altro che le riflettanze di tutte le bande.
+
+
+# set.seed(99)
+
+# 2. Classify
+kcluster <- kmeans(singlenr, centers = 3)
+kcluster
+#kmeans lavora su dati tabellari, si chiama così perchè raggruppa i pixel basandosi su delle classi. 
+#kmeans= tot di medie(centroide), clustering(raggruppamento di pixel in classi) basandoci sulla media dei loro valori spettrali(centroidi)
+#trovo i centroidi delle nuvole di punti, creo un numero di distanze in base al numero di nuvole di punti. Minore è la distanza dal centroide di una nuvola di punti, maggiore è la possibilità che un pixel incognito appartenga ad una certa nuvola di punti. 
+
+
+
+# 3. Set values to a raster on the basis of so
+soclass <- setValues(so[[1]], kcluster$cluster) 
+# assign new values to a raster object
+#riassegnamo sulla base dell'immagine precedente i valori ottenuti. passa dei dati continui in formato Raster
+#[[1]] uso una sola banda per metterci dentro i valori della classificazione
+#kcluster contiene varie componenti, tra le quali usiamo "cluster"
+
+
+cl <- colorRampPalette(c('yellow','black','red'))(100)
+plot(soclass, col=cl)
+#classe numero 1 (gialla) = livello energetico medio: 41.45 %
+#classe numero 2 (nera) = livello energetico più alto: 21.22 %
+#classe numero 3 (rossa) = livello energetico più basso: 37.33 %
+#classificazione non supervisionata, decidiamo solo il numero di classi
+
+#quant'è la % di pixel ad alta o bassa energia? possiamo utilizzare una frequenza 
+frequencies <- freq(soclass)
+frequencies
+soclass #per vedere numero di pixel dell'immagine
+tot= 2221440
+percentages = frequencies*100/ tot
+percentages
+
+
+
+
+# set.seed can be used for repeating the experiment in the same manner for N times
+# http://rfunction.com/archives/62
+
+####
+
+# day 2 Grand Canyon
+
+gc <- brick("dolansprings_oli_2013088_canyon_lrg.jpg")
+gc
+
+# rosso = 1
+# verde = 2
+# blu = 3
+
+plotRGB(gc, r=1, g=2, b=3, stretch="lin")
+
+# change the stretch to histogram stretching
+plotRGB(gc, r=1, g=2, b=3, stretch="hist")
+
+# classification
+
+# 1. Get values
+singlenr <- getValues(gc)
+singlenr
+
+# 2. Classify
+kcluster <- kmeans(singlenr, centers = 3)
+kcluster
+
+# 3. Set values
+gcclass <- setValues(gc[[1]], kcluster$cluster) # assign new values to a raster object
+
+cl <- colorRampPalette(c('yellow','black','red'))(100)
+plot(gcclass, col=cl)
+
+frequencies <- freq(gcclass)
+tot = 58076148
+percentages = frequencies * 100 /  tot
+
+# Exercise: classify the map with 4 classes
+
+
+
+
+
