@@ -1,1 +1,0 @@
-# telerilevamento2023
