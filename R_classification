@@ -4,65 +4,65 @@ library(raster)
 install.packages("RStoolbox")
 library(RStoolbox)
 
+#setting the working directory
 
-setwd("C:/lab/p224r63_2011.grd") # Windows
+setwd("C:/telerilevamento_2024") # Windows
 
 # data import
 so <- brick("Solar_Orbiter_s_first_views_of_the_Sun_pillars.jpg")
 
+# Let's plot our picture changing the stretch parameter, which changes the color scale in terms of brightness
 plotRGB(so, 1, 2, 3, stretch="lin")
-plotRGB(so, 1, 2, 3, stretch="hist")
-#per vedere una profondità superiore per quanto riguarda differenziazioni
+plotRGB(so, 1, 2, 3, stretch="hist")# this shifts the center point of our colors further in brightness
+
 
 
 # Classifying the solar data
-#abbiamo dati originali di riflettanza, vogliamo classificarlo in tre classi.
+#We have the original reflectance data, and we want to classify it into three classes.
 
 
 # https://rspatial.org/raster/rs/4-unsupclassification.html
-#primo passaggio per utilizzare la funzione successiva di classificazione, dobbiamo trasformare l'immagine, i colori in una serie di valori continui. un tabulato con tutti i valori. Getvalues è una funzione che prende i valori da un'immagine e li rimette su un tabulato.
+#The initial step in employing the subsequent classification function involves
+#transforming the image and its colors into a sequence of continuous values. This entails creating a table containing all the values. The Getvalues function extracts values from an image and stores them in a table.
 
 # 1. Get all the single values
 singlenr <- getValues(so)
 singlenr
 #singlenr = single numbers
-#getvalues= prende ogni singolo pixel dell'immagine e lo rimette in forma vettoriale. I valori non sono altro che le riflettanze di tutte le bande.
+#The getvalues function extracts each individual pixel from the image and converts it into a vector format. These values represent the reflectances across all bands.
 
 
-# set.seed(99)
+set.seed(99)#This is used to set the seed for the random number generator (for reproducibility)
 
 # 2. Classify
 kcluster <- kmeans(singlenr, centers = 3)
 kcluster
-#kmeans lavora su dati tabellari, si chiama così perchè raggruppa i pixel basandosi su delle classi. 
-#kmeans= tot di medie(centroide), clustering(raggruppamento di pixel in classi) basandoci sulla media dei loro valori spettrali(centroidi)
-#trovo i centroidi delle nuvole di punti, creo un numero di distanze in base al numero di nuvole di punti. Minore è la distanza dal centroide di una nuvola di punti, maggiore è la possibilità che un pixel incognito appartenga ad una certa nuvola di punti. 
-
+#K-means operates on tabular data. It's named as such because it clusters pixels based on classes.
+#K-means: A technique that employs a set of means (centroids) to group pixels into classes based on the average of their spectral values (centroids).
+#Centroids of the point clouds are identified, and a number of distances are generated corresponding to the number of point clouds. The closer a pixel is to the 
+#centroid of a point cloud, the higher the probability that an unknown pixel belongs to that particular point cloud.
 
 
 # 3. Set values to a raster on the basis of so
 soclass <- setValues(so[[1]], kcluster$cluster) 
 # assign new values to a raster object
-#riassegnamo sulla base dell'immagine precedente i valori ottenuti. passa dei dati continui in formato Raster
-#[[1]] uso una sola banda per metterci dentro i valori della classificazione
-#kcluster contiene varie componenti, tra le quali usiamo "cluster"
+#We reassign the obtained values based on the previous image. 
+#[[1]] I use a single band to store the classification values.
+#The kcluster function comprises various components, among which we utilize the 'cluster' component.
 
 
 cl <- colorRampPalette(c('yellow','black','red'))(100)
 plot(soclass, col=cl)
-#classe numero 1 (gialla) = livello energetico medio: 41.45 %
-#classe numero 2 (nera) = livello energetico più alto: 21.22 %
-#classe numero 3 (rossa) = livello energetico più basso: 37.33 %
-#classificazione non supervisionata, decidiamo solo il numero di classi
+#class number  1 (yellow) = medium energetic level: 41.45 %
+#class number  2 (black) = high energetic level: 21.22 %
+#class number  3 (red) = lower energetic level: 37.33 %
+#This is unsupervised classification, where we only specify the number of classes
 
-#quant'è la % di pixel ad alta o bassa energia? possiamo utilizzare una frequenza 
+#What is the percentage of pixels with high or low energy? We can use a frequency. 
 frequencies <- freq(soclass)
 frequencies
-soclass #per vedere numero di pixel dell'immagine
+soclass #to see the pixels number of the image
 tot= 2221440
 percentages = frequencies*100/ tot
 percentages
-
-
-
 
