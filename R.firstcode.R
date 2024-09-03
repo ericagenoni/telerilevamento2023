@@ -13,7 +13,7 @@ setwd("C:/telerilevamento_2024/p224r63_2011")#windows
 # file with all these data inside.
 l2011 <- brick("p224r63_2011_masked.grd")
 
-# plotting the data in a savage manner
+# plotting data 
 plot(l2011)
 
 # https://www.r-graph-gallery.com/42-colors-names.html (is the website where you can choose a color palette.)
