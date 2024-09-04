@@ -1,14 +1,25 @@
+#########bozza############
+
 # Progetto di telerilevamento geo-ecologico 2024
 # Analisi del trend di disseccamento del Lago d'Aral nel 2024
 # Dati disponibili: gennaio, marzo, maggio e luglio 2024, scaricati dal portale Sentinel 2
 
 # Impostazione della directory di lavoro
-setwd("C:/Esame_telerilevamento_2024")
+setwd("C:/Esame_telerilevamento_2024/Data")
 
 # Installazione e caricamento dei pacchetti necessari
-required_packages <- c("ggplot2", "raster", "rasterVis", "sf", "viridis", "patchwork", "terra", "tidyverse")
-install.packages(setdiff(required_packages, rownames(installed.packages())), dependencies = TRUE)
-lapply(required_packages, library, character.only = TRUE)
+install.packages("ggplot2")
+install.packages("raster")
+install.packages("rasterVis")
+install.packages("sf")
+install.packages("viridis")
+install.packages("patchwork")
+install.packages("terra")
+install.packages("tidyverse")
+
+#required_packages <- c("ggplot2", "raster", "rasterVis", "sf", "viridis", "patchwork", "terra", "tidyverse")
+#install.packages(setdiff(required_packages, rownames(installed.packages())), dependencies = TRUE)
+#lapply(required_packages, library, character.only = TRUE)
 
 # Caricamento dei pacchetti necessari
 library(raster)
@@ -324,10 +335,17 @@ mndwi_mg <- calc_mndwi(g3_mg, swir11_mg)  # MNDWI Maggio 2024
 mndwi_l <- calc_mndwi(g3_l, swir11_l)     # MNDWI Luglio 2024
 
 # Visualizzazione degli MNDWI per ciascun mese
-par(mfrow = c(2, 2))
+par(mfrow = c(1, 1))
 plot(mndwi_g, main = "MNDWI Gennaio 2024", col = viridis(100))
+# Ridurre i margini del grafico
+par(mar = c(2, 2, 2, 2))  # Riduce i margini
+plot(mndwi_g, main = "MNDWI Gennaio 2024", col = viridis(100))
+
+par(mar = c(2, 2, 2, 2)) 
 plot(mndwi_mr, main = "MNDWI Marzo 2024", col = viridis(100))
+par(mar = c(2, 2, 2, 2)) 
 plot(mndwi_mg, main = "MNDWI Maggio 2024", col = viridis(100))
+par(mar = c(2, 2, 2, 2)) 
 plot(mndwi_l, main = "MNDWI Luglio 2024", col = viridis(100))
 
 # Calcolo della media e della deviazione standard degli MNDWI per ciascun mese
@@ -352,6 +370,18 @@ mndwi_stats <- data.frame(
 
 print(mndwi_stats)
 
+#Interpretazione dei Risultati
+#Media MNDWI: La media dell'indice MNDWI per ciascun mese è
+#negativa. Un valore negativo del MNDWI generalmente indica 
+#una predominanza di suolo o altre superfici non acquatiche,
+#mentre valori positivi indicano la presenza di acqua. Sembra 
+#quindi che per questi mesi il tuo area di studio non abbia una
+#quantità significativa di acqua o che la vegetazione e il suolo
+#siano prevalenti.
+
+#Deviazione Standard (SD): La deviazione standard per ciascun mese
+#è simile, intorno a 0.15, suggerendo una variazione moderata dei
+#valori MNDWI all'interno dell'area di studio per ogni mese.
 
 ###verifica della significatività di questi risultati
 # Creazione di un vettore con i dati medi dell'MNDWI
@@ -363,6 +393,20 @@ data <- data.frame(MNDWI = mndwi_values, Mese = mesi)
 
 # Statistiche descrittive di base
 summary(data$MNDWI)
+
+#Interpretazione
+#Minimo e Massimo: Il valore minimo è -0.08002 (Luglio) e il massimo 
+#è -0.03419 (Gennaio). Ciò indica una variabilità limitata nei valori
+#medi del MNDWI tra i mesi.
+#Quartili: I valori dei quartili suggeriscono che i dati sono distribuiti
+#abbastanza uniformemente tra il primo e il terzo quartile, con un intervallo
+#interquartile (IQR) relativamente stretto, che mostra che non ci sono grandi 
+#variazioni nei valori medi dell'MNDWI tra i mesi.
+#Media e Mediana: La media (-0.06737) è leggermente maggiore della mediana (-0.07764), 
+#suggerendo una leggera asimmetria verso i valori più alti (meno negativi). Tuttavia, 
+#la differenza tra media e mediana non è grande, indicando una distribuzione abbastanza 
+#simmetrica.
+
 
 # Visualizzazione dei dati con un barplot
 ggplot(data, aes(x = Mese, y = MNDWI, fill = Mese)) +
@@ -426,5 +470,123 @@ ggplot(df, aes(x = date, y = area_acqua)) +
   theme_minimal() +
   scale_x_date(date_labels = "%b %Y", date_breaks = "1 month")
 
+#########################AWEI#############
+# Caricamento delle bande necessarie per il calcolo dell'AWEI
 
+# Caricamento delle altre bande
+
+swir11_l <- raster("T40TFR_20240709T065621_B11_20m.jp2") # Banda SWIR1 Luglio
+swir11_mg <- raster("T40TFR_20240530T065621_B11_20m.jp2") # Banda SWIR1 Maggio
+swir11_mr <- raster("T40TFR_20240301T065821_B11_20m.jp2") # Banda SWIR1 Marzo
+swir11_g <- raster("T40TFR_20240101T070301_B11_20m.jp2")  # Banda SWIR1 Gennaio
+
+swir12_l <- raster("T40TFR_20240709T065621_B12_20m.jp2")  # Banda SWIR2 Luglio
+swir12_mg <- raster("T40TFR_20240530T065621_B12_20m.jp2") # Banda SWIR2 Maggio
+swir12_mr <- raster("T40TFR_20240301T065821_B12_20m.jp2") # Banda SWIR2 Marzo
+swir12_g <- raster("T40TFR_20240101T070301_B12_20m.jp2")  # Banda SWIR2 Gennaio
+
+# Funzione per calcolare AWEIsh
+calc_aweish <- function(green, nir, swir1, swir2) {
+  return(4 * (green - swir1) - (0.25 * nir + 2.75 * swir2))
+}
+
+# Calcolo dell'AWEIsh per ciascun periodo
+aweish_g <- calc_aweish(g3_g, nir8a_g, swir11_g, swir12_g)    # AWEIsh Gennaio 2024
+aweish_mr <- calc_aweish(g3_mr, nir8a_mr, swir11_mr, swir12_mr)  # AWEIsh Marzo 2024
+aweish_mg <- calc_aweish(g3_mg, nir8a_mg, swir11_mg, swir12_mg)  # AWEIsh Maggio 2024
+aweish_l <- calc_aweish(g3_l, nir8a_l, swir11_l, swir12_l)    # AWEIsh Luglio 2024
+
+
+# Visualizzazione degli AWEIsh per ciascun mese
+par(mfrow = c(2, 2))
+plot(aweish_g, main = "AWEIsh Gennaio 2024", col = viridis(100))
+plot(aweish_mr, main = "AWEIsh Marzo 2024", col = viridis(100))
+plot(aweish_mg, main = "AWEIsh Maggio 2024", col = viridis(100))
+plot(aweish_l, main = "AWEIsh Luglio 2024", col = viridis(100))
+
+# Calcolo della media e della deviazione standard degli AWEIsh per ciascun mese
+aweish_mean_g <- cellStats(aweish_g, stat = 'mean', na.rm = TRUE)
+aweish_sd_g <- cellStats(aweish_g, stat = 'sd', na.rm = TRUE)
+
+aweish_mean_mr <- cellStats(aweish_mr, stat = 'mean', na.rm = TRUE)
+aweish_sd_mr <- cellStats(aweish_mr, stat = 'sd', na.rm = TRUE)
+
+aweish_mean_mg <- cellStats(aweish_mg, stat = 'mean', na.rm = TRUE)
+aweish_sd_mg <- cellStats(aweish_mg, stat = 'sd', na.rm = TRUE)
+
+aweish_mean_l <- cellStats(aweish_l, stat = 'mean', na.rm = TRUE)
+aweish_sd_l <- cellStats(aweish_l, stat = 'sd', na.rm = TRUE)
+
+# Creazione di un data frame per la visualizzazione
+aweish_stats <- data.frame(
+  Mese = c("Gennaio", "Marzo", "Maggio", "Luglio"),
+  Media = c(aweish_mean_g, aweish_mean_mr, aweish_mean_mg, aweish_mean_l),
+  SD = c(aweish_sd_g, aweish_sd_mr, aweish_sd_mg, aweish_sd_l)
+)
+
+print(aweish_stats)
+
+###########################  PCA   ###############################
+# Creazione di stack delle bande per ogni mese
+bands_stack_jan <- stack(b2_norm_g, g3_norm_g, r4_norm_g, nir_norm_g, swir11_g)
+bands_stack_mar <- stack(b2_norm_mr, g3_norm_mr, r4_norm_mr, nir_norm_mr, swir11_mr)
+bands_stack_may <- stack(b2_norm_mg, g3_norm_mg, r4_norm_mg, nir_norm_mg, swir11_mg)
+bands_stack_jul <- stack(b2_norm_l, g3_norm_l, r4_norm_l, nir_norm_l, swir11_l)
+
+# Funzione per applicare la PCA a uno stack raster
+apply_pca <- function(raster_stack) {
+  # Converti lo stack in una matrice
+  raster_matrix <- as.matrix(raster_stack)
+  
+  # Applicazione della PCA
+  pca_result <- prcomp(raster_matrix, center = TRUE, scale. = TRUE)
+  
+  # Ricostruzione del raster con la prima componente principale
+  pca_raster <- raster(raster_stack[[1]])
+  pca_raster[] <- pca_result$x[,1]  # Usa la prima componente principale
+  
+  return(pca_raster)
+}
+
+# Applicazione della PCA a tutti i mesi
+pca_jan <- apply_pca(bands_stack_jan)
+pca_mar <- apply_pca(bands_stack_mar)
+pca_may <- apply_pca(bands_stack_may)
+pca_jul <- apply_pca(bands_stack_jul)
+
+# Funzione per applicare la PCA a uno stack raster
+apply_pca <- function(raster_stack) {
+  # Converti lo stack in una matrice
+  raster_matrix <- as.matrix(raster_stack)
+  
+  # Applicazione della PCA
+  pca_result <- prcomp(raster_matrix, center = TRUE, scale. = TRUE)
+  
+  # Ricostruzione del raster con la prima componente principale
+  pca_raster <- raster(raster_stack[[1]])
+  pca_raster[] <- pca_result$x[,1]  # Usa la prima componente principale
+  
+  return(pca_raster)
+}
+
+# Applicazione della PCA a tutti i mesi
+pca_jan <- apply_pca(bands_stack_jan)
+pca_mar <- apply_pca(bands_stack_mar)
+pca_may <- apply_pca(bands_stack_may)
+pca_jul <- apply_pca(bands_stack_jul)
+
+# Verifica delle dimensioni dei risultati PCA
+print(dim(pca_result$x))  # Dovrebbe mostrare il numero di righe e colonne
+
+# Verifica della classe e le dimensioni del raster
+print(class(pca_jan))
+print(dim(pca_jan))
+
+
+# Visualizzazione delle prime componenti principali per ogni mese
+par(mfrow = c(2, 2))
+plot(pca_jan, main = "PCA Gennaio 2024", col = viridis(100))
+plot(pca_mar, main = "PCA Marzo 2024", col = viridis(100))
+plot(pca_may, main = "PCA Maggio 2024", col = viridis(100))
+plot(pca_jul, main = "PCA Luglio 2024", col = viridis(100))
 
