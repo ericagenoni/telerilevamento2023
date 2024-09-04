@@ -1,0 +1,381 @@
+# Progetto di telerilevamento geo-ecologico 2024
+# Analisi del trend di disseccamento del Lago d'Aral nel 2024
+# Dati disponibili: gennaio, marzo, maggio e luglio 2024, scaricati dal portale Sentinel 2
+
+# Impostazione della directory di lavoro
+setwd("C:/Esame_telerilevamento_2024")
+
+# Installazione e caricamento dei pacchetti necessari
+required_packages <- c("ggplot2", "raster", "rasterVis", "sf", "viridis", "patchwork", "terra", "tidyverse")
+install.packages(setdiff(required_packages, rownames(installed.packages())), dependencies = TRUE)
+lapply(required_packages, library, character.only = TRUE)
+
+# Caricamento dei pacchetti necessari
+library(raster)
+library(ggplot2)
+library(viridisLite)
+library(patchwork)
+library(rasterVis)
+library(sf)
+library(terra)
+library(tidyverse)
+
+# working directory dei dati Sentinel
+setwd("C:/Esame_telerilevamento_2024/sentinel_data/R20")
+
+# Elenco dei file .jp2 nella cartella specificata
+files <- list.files(pattern = "*.jp2")
+tci_files <- list.files(pattern = "TCI_20m.jp2")
+
+# Caricamento delle bande di immagine Sentinel per i vari mesi
+# Banda Blu
+b2_l <- raster("T40TFR_20240709T065621_B02_20m.jp2")   #luglio 2024
+b2_mg <- raster("T40TFR_20240530T065621_B02_20m.jp2")  #maggio 2024
+b2_mr <- raster("T40TFR_20240301T065821_B02_20m.jp2")  #marzo  2024
+b2_g <- raster("T40TFR_20240101T070301_B02_20m.jp2")  #gennaio 2024
+
+# Plot delle bande blu per ciascun mese
+par(mfrow = c(2, 2))
+plot(b2_l, main = "Luglio 2024", col = viridis(100))
+plot(b2_mg, main = "Maggio 2024", col = viridis(100))
+plot(b2_mr, main = "Marzo 2024", col = viridis(100))
+plot(b2_g, main = "Gennaio 2024", col = viridis(100))
+
+# Calcolo delle differenze tra le immagini per le bande blu
+#diff_jan_mar <- b2_marzo - b2_gennaio   # Differenza tra Marzo e Gennaio
+#diff_mar_may <- b2_maggio - b2_marzo    # Differenza tra Maggio e Marzo
+#diff_may_jul <- b2_luglio - b2_maggio   # Differenza tra Luglio e Maggio
+#diff_jan_jul <- b2_gennaio - b2_luglio  # Differenza tra Gennaio e Luglio
+
+# Plot delle differenze tra le bande blu
+#par(mfrow = c(2, 2))
+#plot(diff_jan_mar, main = "Differenza Marzo - Gennaio", col = viridis(100))
+#plot(diff_mar_may, main = "Differenza Maggio - Marzo", col = viridis(100))
+#plot(diff_may_jul, main = "Differenza Luglio - Maggio", col = viridis(100))
+#plot(diff_jan_jul, main = "Differenza Gennaio - Luglio", col = viridis(100))
+
+# Caricamento delle bande ciascun periodo
+# Banda Verde
+g3_l <- raster("T40TFR_20240709T065621_B03_20m.jp2") #luglio
+g3_mg <- raster("T40TFR_20240530T065621_B03_20m.jp2") #maggio
+g3_mr <- raster("T40TFR_20240301T065821_B03_20m.jp2") #marzo
+g3_g <- raster("T40TFR_20240101T070301_B03_20m.jp2") #gennaio
+
+# Banda Rossa
+r4_l <- raster("T40TFR_20240709T065621_B04_20m.jp2")
+r4_mg <- raster("T40TFR_20240530T065621_B04_20m.jp2")
+r4_mr <- raster("T40TFR_20240301T065821_B04_20m.jp2")
+r4_g <- raster("T40TFR_20240101T070301_B04_20m.jp2")
+
+# Plot delle bande rosse
+par(mfrow = c(2, 2))
+plot(r4_l, main = "Luglio 2024", col = viridis(100))
+plot(r4_mg, main = "Maggio 2024", col = viridis(100))
+plot(r4_mr, main = "Marzo 2024", col = viridis(100))
+plot(r4_g, main = "Gennaio 2024", col = viridis(100))
+
+# NIR
+nir_l <- raster("T40TFR_20240709T065621_B8A_20m.jp2")
+nir_mg <- raster("T40TFR_20240530T065621_B8A_20m.jp2")
+nir_mr <- raster("T40TFR_20240301T065821_B8A_20m.jp2")
+nir_g <- raster("T40TFR_20240101T070301_B8A_20m.jp2")
+
+
+# Funzione per normalizzare i valori
+normalize <- function(x) {
+  min_val <- min(x, na.rm = TRUE)
+  max_val <- max(x, na.rm = TRUE)
+  return(((x - min_val) / (max_val - min_val)) * 255)
+}
+
+# Normalizzazione delle bande per Gennaio
+b2_norm_g <- calc(b2_g, fun = normalize)
+g3_norm_g <- calc(g3_g, fun = normalize)
+r4_norm_g <- calc(r4_g, fun = normalize)
+nir_norm_g <- calc(nir_g, fun = normalize)
+
+# Normalizzazione delle bande per Marzo
+b2_norm_mr <- calc(b2_mr, fun = normalize)
+g3_norm_mr <- calc(g3_mr, fun = normalize)
+r4_norm_mr <- calc(r4_mr, fun = normalize)
+nir_norm_mr <- calc(nir_mr, fun = normalize)
+
+# Normalizzazione delle bande per Maggio
+b2_norm_mg <- calc(b2_mg, fun = normalize)
+g3_norm_mg <- calc(g3_mg, fun = normalize)
+r4_norm_mg <- calc(r4_mg, fun = normalize)
+nir_norm_mg <- calc(nir_mg, fun = normalize)
+
+# Normalizzazione delle bande per Luglio
+b2_norm_l <- calc(b2_l, fun = normalize)
+g3_norm_l <- calc(g3_l, fun = normalize)
+r4_norm_l <- calc(r4_l, fun = normalize)
+nir_norm_l <- calc(nir_l, fun = normalize)
+
+
+# Creazione di stack RGB normalizzati per ciascun mese
+rgb_stack_g <- stack(r4_norm_g, g3_norm_g, b2_norm_g)   # Gennaio 2024
+rgb_stack_mr <- stack(r4_norm_mr, g3_norm_mr, b2_norm_mr)  # Marzo 2024
+rgb_stack_mg <- stack(r4_norm_mg, g3_norm_mg, b2_norm_mg)  # Maggio 2024
+rgb_stack_l <- stack(r4_norm_l, g3_norm_l, b2_norm_l)    # Luglio 2024
+
+
+# Visualizzazione delle immagini RGB per ciascun mese
+par(mfrow = c(2, 2))
+plotRGB(rgb_stack_g, main = "Gennaio 2024")
+plotRGB(rgb_stack_mr, main = "Marzo 2024")
+plotRGB(rgb_stack_mg, main = "Maggio 2024")
+plotRGB(rgb_stack_l, main = "Luglio 2024")
+
+########################## CALCOLO NDVI ###############################################
+# Funzione per calcolare l'NDVI
+calc_ndvi <- function(nir, red) {
+  return((nir - red) / (nir + red))
+}
+
+# Calcolo dell'NDVI per ciascun periodo
+ndvi_g <- calc_ndvi(nir_g, r4_g)     # NDVI Gennaio
+ndvi_mr <- calc_ndvi(nir_mr, r4_mr)  # NDVI Marzo
+ndvi_mg <- calc_ndvi(nir_mg, r4_mg)  # NDVI Maggio
+ndvi_l <- calc_ndvi(nir_l, r4_l)     # NDVI Luglio
+
+# Visualizzazione degli NDVI per ciascun mese
+par(mfrow = c(2, 2))
+plot(ndvi_g, main = "NDVI Gennaio 2024", col = viridis(100))
+plot(ndvi_mr, main = "NDVI Marzo 2024", col = viridis(100))
+plot(ndvi_mg, main = "NDVI Maggio 2024", col = viridis(100))
+plot(ndvi_l, main = "NDVI Luglio 2024", col = viridis(100))
+
+
+##################### 1. Analisi Temporale del Trend dell'NDVI
+#Obiettivo: Valutare come l'NDVI cambia nel 
+#tempo tra gennaio e luglio per identificare
+#periodi di aumento o diminuzione della vegetazione.######
+
+# Calcolo delle differenze tra gli NDVI
+ndvi_diff_jan_mar <- ndvi_mr - ndvi_g   # Differenza NDVI tra Marzo e Gennaio
+ndvi_diff_mar_may <- ndvi_mg - ndvi_mr  # Differenza NDVI tra Maggio e Marzo
+ndvi_diff_may_jul <- ndvi_l - ndvi_mg   # Differenza NDVI tra Luglio e Maggio
+ndvi_diff_jan_jul <- ndvi_g - ndvi_l    # Differenza NDVI tra Gennaio e Luglio
+
+# Plot delle differenze NDVI
+
+# Imposta layout a 2x2 con margini più grandi per il titolo generale
+par(mfrow = c(2, 2), mar = c(4, 4, 2, 1) + 0.1)
+
+# Grafici singoli con titoli specifici
+plot(ndvi_diff_jan_mar, main = "Differenza NDVI: Marzo - Gennaio", col = viridis(100))
+plot(ndvi_diff_mar_may, main = "Differenza NDVI: Maggio - Marzo", col = viridis(100))
+plot(ndvi_diff_may_jul, main = "Differenza NDVI: Luglio - Maggio", col = viridis(100))
+plot(ndvi_diff_jan_jul, main = "Differenza NDVI: Gennaio - Luglio", col = viridis(100))
+
+
+###################2.Calcolo della Media e della Deviazione Standard dell'NDVI
+#Obiettivo: Quantificare il livello medio di vegetazione e la variabilità della 
+#copertura vegetale in ciascun mese.
+
+# Calcolo della media e della deviazione standard degli NDVI per ciascun mese
+ndvi_mean_g <- cellStats(ndvi_g, stat = 'mean', na.rm = TRUE)
+ndvi_sd_g <- cellStats(ndvi_g, stat = 'sd', na.rm = TRUE)
+
+ndvi_mean_mr <- cellStats(ndvi_mr, stat = 'mean', na.rm = TRUE)
+ndvi_sd_mr <- cellStats(ndvi_mr, stat = 'sd', na.rm = TRUE)
+
+ndvi_mean_mg <- cellStats(ndvi_mg, stat = 'mean', na.rm = TRUE)
+ndvi_sd_mg <- cellStats(ndvi_mg, stat = 'sd', na.rm = TRUE)
+
+ndvi_mean_l <- cellStats(ndvi_l, stat = 'mean', na.rm = TRUE)
+ndvi_sd_l <- cellStats(ndvi_l, stat = 'sd', na.rm = TRUE)
+
+# Creazione di un data frame per la visualizzazione
+ndvi_stats <- data.frame(
+  Mese = c("Gennaio", "Marzo", "Maggio", "Luglio"),
+  Media = c(ndvi_mean_g, ndvi_mean_mr, ndvi_mean_mg, ndvi_mean_l),
+  SD = c(ndvi_sd_g, ndvi_sd_mr, ndvi_sd_mg, ndvi_sd_l)
+)
+
+print(ndvi_stats)
+
+
+#Da gennaio a maggio, c'è un graduale aumento della media dell'NDVI, 
+#che potrebbe indicare una crescita progressiva della vegetazione in primavera.
+#A luglio, si osserva un leggero calo della media dell'NDVI rispetto a maggio,
+#che potrebbe essere dovuto a vari fattori, come un clima più caldo o periodi 
+#di siccità che iniziano a influenzare la vegetazione.
+
+#La variabilità dell'NDVI è massima a gennaio, suggerendo che la copertura vegetale
+#è molto eterogenea in questo mese. Potrebbe essere legato a fattori come la
+#presenza di aree con vegetazione densa alternata a zone spoglie o a zone con
+#differenze significative nella tipologia di vegetazione.
+#Da gennaio a luglio, la deviazione standard diminuisce, indicando che la
+#copertura vegetale diventa progressivamente più omogenea. Questo potrebbe
+#essere dovuto a una crescita più uniforme della vegetazione con l'avanzare
+#della stagione, o all'eliminazione di zone meno vegetate con l'inizio della
+#primavera e dell'estate.
+
+
+
+###########3. Mappatura delle Aree a Rischio di Disseccamento
+#Obiettivo: Identificare le aree con valori di NDVI molto bassi, 
+#che indicano stress idrico o carenza di vegetazione.
+
+# Definisci una soglia per identificare aree a basso NDVI
+threshold <- 0.2
+
+# Creazione di un raster binario che identifica le aree sotto la soglia
+areas_low_ndvi_g <- ndvi_g < threshold
+areas_low_ndvi_mr <- ndvi_mr < threshold
+areas_low_ndvi_mg <- ndvi_mg < threshold
+areas_low_ndvi_l <- ndvi_l < threshold
+
+# Plot delle aree con NDVI basso
+par(mfrow = c(2, 2))
+plot(areas_low_ndvi_g, main = "Aree a Basso NDVI - Gennaio", col = viridis(100))
+plot(areas_low_ndvi_mr, main = "Aree a Basso NDVI - Marzo", col = viridis(100))
+plot(areas_low_ndvi_mg, main = "Aree a Basso NDVI - Maggio", col = viridis(100))
+plot(areas_low_ndvi_l, main = "Aree a Basso NDVI - Luglio", col = viridis(100))
+
+print(range(values(ndvi_g)))
+print(range(values(ndvi_mr)))
+print(range(values(ndvi_mg)))
+print(range(values(ndvi_l)))
+
+print(table(values(areas_low_ndvi_g)))
+print(table(values(areas_low_ndvi_mr)))
+print(table(values(areas_low_ndvi_mg)))
+print(table(values(areas_low_ndvi_l)))
+
+###Conteggi dei Valori Binari:
+#Quasi tutti i pixel nei raster binari sono TRUE 
+#(cioè, sotto la soglia di 0.2). Solo una piccola
+#frazione dei pixel è FALSE (sopra la soglia).
+#La maggior parte dei valori è al di sotto della
+#soglia di 0.2 per tutti i mesi, con marzo che ha
+#solo 138 pixel sopra la soglia, mentre gli altri
+#mesi hanno tra 11,725 e 65,605 pixel sopra la soglia.
+#Gran parte delle aree ha un NDVI inferiore alla soglia
+#di 0.2. Questo è il motivo per cui i grafici appaiono 
+#quasi interamente gialli: la maggior parte delle aree 
+#soddisfa la condizione di "basso NDVI".
+#Valori Negativi di NDVI: I valori negativi suggeriscono 
+#che in molte aree c'è poca o nessuna vegetazione
+
+
+######MNDWI (Modified Normalized Difference Water Index)
+#usiamo le bande Green (B03) e 
+#SWIR (Short-Wave Infrared, B11)
+#delle immagini Sentinel-2.
+
+# Caricamento delle bande SWIR (B11) per ciascun periodo
+swir11_l <- raster("T40TFR_20240709T065621_B11_20m.jp2")  # Luglio
+swir11_mg <- raster("T40TFR_20240530T065621_B11_20m.jp2") # Maggio
+swir11_mr <- raster("T40TFR_20240301T065821_B11_20m.jp2") # Marzo
+swir11_g <- raster("T40TFR_20240101T070301_B11_20m.jp2")  # Gennaio
+
+# Funzione per calcolare l'MNDWI
+calc_mndwi <- function(green, swir) {
+  return((green - swir) / (green + swir))
+}
+
+# Calcolo dell'MNDWI per ciascun periodo
+mndwi_g <- calc_mndwi(g3_g, swir11_g)     # MNDWI Gennaio 2024
+mndwi_mr <- calc_mndwi(g3_mr, swir11_mr)  # MNDWI Marzo 2024
+mndwi_mg <- calc_mndwi(g3_mg, swir11_mg)  # MNDWI Maggio 2024
+mndwi_l <- calc_mndwi(g3_l, swir11_l)     # MNDWI Luglio 2024
+
+# Visualizzazione degli MNDWI per ciascun mese
+par(mfrow = c(2, 2))
+plot(mndwi_g, main = "MNDWI Gennaio 2024", col = viridis(100))
+plot(mndwi_mr, main = "MNDWI Marzo 2024", col = viridis(100))
+plot(mndwi_mg, main = "MNDWI Maggio 2024", col = viridis(100))
+plot(mndwi_l, main = "MNDWI Luglio 2024", col = viridis(100))
+
+# Calcolo della media e della deviazione standard degli MNDWI per ciascun mese
+mndwi_mean_g <- cellStats(mndwi_g, stat = 'mean', na.rm = TRUE)
+mndwi_sd_g <- cellStats(mndwi_g, stat = 'sd', na.rm = TRUE)
+
+mndwi_mean_mr <- cellStats(mndwi_mr, stat = 'mean', na.rm = TRUE)
+mndwi_sd_mr <- cellStats(mndwi_mr, stat = 'sd', na.rm = TRUE)
+
+mndwi_mean_mg <- cellStats(mndwi_mg, stat = 'mean', na.rm = TRUE)
+mndwi_sd_mg <- cellStats(mndwi_mg, stat = 'sd', na.rm = TRUE)
+
+mndwi_mean_l <- cellStats(mndwi_l, stat = 'mean', na.rm = TRUE)
+mndwi_sd_l <- cellStats(mndwi_l, stat = 'sd', na.rm = TRUE)
+
+# Creazione di un data frame per la visualizzazione
+mndwi_stats <- data.frame(
+  Mese = c("Gennaio", "Marzo", "Maggio", "Luglio"),
+  Media = c(mndwi_mean_g, mndwi_mean_mr, mndwi_mean_mg, mndwi_mean_l),
+  SD = c(mndwi_sd_g, mndwi_sd_mr, mndwi_sd_mg, mndwi_sd_l)
+)
+
+print(mndwi_stats)
+
+
+###verifica della significatività di questi risultati
+# Creazione di un vettore con i dati medi dell'MNDWI
+mndwi_values <- c(-0.03418919, -0.07814787, -0.07712662, -0.08001893)
+mesi <- factor(c("Gennaio", "Marzo", "Maggio", "Luglio"))
+
+# Creazione di un data frame per i dati
+data <- data.frame(MNDWI = mndwi_values, Mese = mesi)
+
+# Statistiche descrittive di base
+summary(data$MNDWI)
+
+# Visualizzazione dei dati con un barplot
+ggplot(data, aes(x = Mese, y = MNDWI, fill = Mese)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "MNDWI per Mese", x = "Mese", y = "MNDWI")
+
+
+
+####################################àà Impostazione di una soglia per classificare l'acqua
+soglia_acqua <- -0.1
+
+# Classifica delle aree di acqua
+acqua_l <- mndwi_l < soglia_acqua
+acqua_mg <- mndwi_mg < soglia_acqua
+acqua_mr <- mndwi_mr < soglia_acqua
+acqua_g <- mndwi_g < soglia_acqua
+
+# Funzione per calcolare l'area dell'acqua
+calcola_area_acqua <- function(raster_acqua) {
+  # Cont  delle celle che soddisfano la condizione
+  num_celle_acqua <- cellStats(raster_acqua, stat = 'sum')
+  # Risoluzione in metri delle celle
+  risoluzione <- res(raster_acqua)
+  # Calcolo dell'area (numero di celle * risoluzione in m²)
+  area_acqua <- num_celle_acqua * prod(risoluzione)
+  return(area_acqua)
+}
+
+# Calcol delle aree per ogni mese
+area_acqua_l <- calcola_area_acqua(acqua_l)
+area_acqua_mg <- calcola_area_acqua(acqua_mg)
+area_acqua_mr <- calcola_area_acqua(acqua_mr)
+area_acqua_g <- calcola_area_acqua(acqua_g)
+
+# Stampa delle aree calcolate
+cat("Area dell'acqua Luglio 2024:", area_acqua_l, "m²\n")
+cat("Area dell'acqua Maggio 2024:", area_acqua_mg, "m²\n")
+cat("Area dell'acqua Marzo 2024:", area_acqua_mr, "m²\n")
+cat("Area dell'acqua Gennaio 2024:", area_acqua_g, "m²\n")
+
+# Creazione di un data frame con i risultati
+date <- as.Date(c("2024-01-01", "2024-03-01", "2024-05-01", "2024-07-01"))
+aree_acqua <- c(area_acqua_g, area_acqua_mr, area_acqua_mg, area_acqua_l)
+df <- data.frame(date = date, area_acqua = aree_acqua)
+
+# Visualizzazione dei risultati
+library(ggplot2)
+ggplot(df, aes(x = date, y = area_acqua)) +
+  geom_line(color = "blue") +
+  geom_point(color = "red") +
+  labs(title = "Trend di Disseccamento del Lago d'Aral durante l'anno 2024",
+       x = "Data",
+       y = "Area dell'acqua (m²)") +
+  theme_minimal() +
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 month")
