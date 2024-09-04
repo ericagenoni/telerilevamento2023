@@ -140,7 +140,7 @@ ndvi_mg <- calc_ndvi(nir_mg, r4_mg)  # NDVI Maggio
 ndvi_l <- calc_ndvi(nir_l, r4_l)     # NDVI Luglio
 
 # Visualizzazione degli NDVI per ciascun mese
-par(mfrow = c(2, 2))
+par(mfrow = c(2, 2), mar = c(4, 4, 2, 1) + 0.1)
 plot(ndvi_g, main = "NDVI Gennaio 2024", col = viridis(100))
 plot(ndvi_mr, main = "NDVI Marzo 2024", col = viridis(100))
 plot(ndvi_mg, main = "NDVI Maggio 2024", col = viridis(100))
@@ -195,6 +195,46 @@ ndvi_stats <- data.frame(
 )
 
 print(ndvi_stats)
+
+################### 3. Visualizzazione delle Medie e Varianze dell'NDVI ###################
+#cellStats non supporta direttamente la funzione di 
+#calcolo della varianza (var). cellStats è limitato a calcolare 
+#olo statistiche predefinite come somma, minimo, massimo, 
+#deviazione standard, media e conteggio dei valori mancanti.
+# Calcolo della varianza degli NDVI per ciascun mese
+# Calcolo della deviazione standard degli NDVI per ciascun mese
+
+ndvi_sd_g <- cellStats(ndvi_g, stat = 'sd', na.rm = TRUE)
+ndvi_sd_mr <- cellStats(ndvi_mr, stat = 'sd', na.rm = TRUE)
+ndvi_sd_mg <- cellStats(ndvi_mg, stat = 'sd', na.rm = TRUE)
+ndvi_sd_l <- cellStats(ndvi_l, stat = 'sd', na.rm = TRUE)
+
+# Calcolo della varianza dalla deviazione standard
+ndvi_var_g <- ndvi_sd_g^2
+ndvi_var_mr <- ndvi_sd_mr^2
+ndvi_var_mg <- ndvi_sd_mg^2
+ndvi_var_l <- ndvi_sd_l^2
+
+# Creazione di un data frame per le medie e varianze
+ndvi_stats <- data.frame(
+  Mese = c("Gennaio", "Marzo", "Maggio", "Luglio"),
+  Media = c(ndvi_mean_g, ndvi_mean_mr, ndvi_mean_mg, ndvi_mean_l),
+  Varianza = c(ndvi_var_g, ndvi_var_mr, ndvi_var_mg, ndvi_var_l)
+)
+
+# Visualizzazione delle medie dell'NDVI per mese
+barplot(ndvi_stats$Media,
+        names.arg = ndvi_stats$Mese,
+        main = "Media NDVI per Mese",
+        ylab = "Media NDVI",
+        col = "skyblue")
+
+# Visualizzazione delle varianze dell'NDVI per mese
+barplot(ndvi_stats$Varianza,
+        names.arg = ndvi_stats$Mese,
+        main = "Varianza NDVI per Mese",
+        ylab = "Varianza NDVI",
+        col = "salmon")
 
 
 #Da gennaio a maggio, c'è un graduale aumento della media dell'NDVI, 
@@ -369,13 +409,22 @@ date <- as.Date(c("2024-01-01", "2024-03-01", "2024-05-01", "2024-07-01"))
 aree_acqua <- c(area_acqua_g, area_acqua_mr, area_acqua_mg, area_acqua_l)
 df <- data.frame(date = date, area_acqua = aree_acqua)
 
-# Visualizzazione dei risultati
-library(ggplot2)
+df 
+
+#dal dataset si evince, che il mese con l'area più grande
+#è marzo 2024 con 6,684,952,000 m². Questo indica che il 
+#lago d'Aral ha avuto la sua massima estensione di acqua
+#in marzo.
+
+# Creazione del grafico
 ggplot(df, aes(x = date, y = area_acqua)) +
   geom_line(color = "blue") +
   geom_point(color = "red") +
-  labs(title = "Trend di Disseccamento del Lago d'Aral durante l'anno 2024",
+  labs(title = "Area dell'Acqua del Lago d'Aral nel 2024",
        x = "Data",
-       y = "Area dell'acqua (m²)") +
+       y = "Area dell'Acqua (m²)") +
   theme_minimal() +
   scale_x_date(date_labels = "%b %Y", date_breaks = "1 month")
+
+
+
