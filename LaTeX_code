@@ -1,0 +1,97 @@
+#######################BOZZA#################
+\documentclass{beamer}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{ragged2e}
+\usepackage{caption} % For caption formatting
+\usetheme{Pittsburgh}
+\usepackage{verbatim} % For verbatim environment
+
+\title{Valutazione del Trend di Disseccamento da Gennaio a Luglio 2024 della Parte Nord del Grande Aral}
+\author{Erica Genoni}
+\date{Settembre 2024}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\begin{frame}{Introduction - The Big Aral}
+\RaggedRight
+Il Grande Aral è un bacino lacustre che si è formato a causa del progressivo prosciugamento del Lago d'Aral, un tempo uno dei più grandi laghi salati del mondo. Nel corso degli anni, il Grande Aral si è ulteriormente diviso in laghi più piccoli a causa della continua diminuzione del livello dell'acqua. Purtroppo, il bacino più orientale si è completamente prosciugato nel 2011.\\[1em]
+Ubicazione: Si trova al confine tra Uzbekistan e Kazakistan, nell'Asia centrale.
+\end{frame}
+
+\begin{frame}{Aim of This Project}
+This study aimed to evaluate the drying trends occurring between January, March, May, and July 2024. Methods employed included: \\
+- Analysis of NDVI (Normalized Difference Vegetation Index) to monitor vegetation health over time.
+- NDVI calculations using Sentinel-2 satellite imagery.
+\end{frame}
+
+\section{Methods}
+\begin{frame}{Methods}
+The Copernicus Sentinel-2 mission provided the satellite imagery for this study. Available data: January, March, May, and July 2024.\\[1em]
+\textbf{Steps:}
+\begin{itemize}
+    \item Acquisition of Sentinel-2 images for specified months.
+    \item Calculation of NDVI using the formula: \[\text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}}\]
+    \item Visualization and comparison of NDVI values across different months.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Calcolo NDVI}
+\begin{block}{NDVI Calculation}
+\begin{verbatim}
+calc_ndvi <- function(nir, red) {
+  return((nir - red) / (nir + red))}
+\end{verbatim}
+\end{block}
+\end{frame}
+
+\begin{frame}{NDVI Visualization}
+\begin{figure}
+    \centering
+    \includegraphics[width=1.0\linewidth]{Rplot0 NDVI MESI.png}
+    \caption{NDVI visualization for January, March, May, and July 2024.}
+    \label{fig:enter-label}
+\end{figure}
+\end{frame}
+
+\section{Results}
+\begin{frame}{NDVI Analysis}
+I grafici mostrano l'andamento del NDVI dal Gennaio al Luglio 2024.\\[1em]
+\begin{itemize}
+    \item \textbf{Gennaio}: Baseline NDVI.
+    \item \textbf{Marzo}: Osservare eventuali cambiamenti nella vegetazione.
+    \item \textbf{Maggio}: Analisi di picco vegetativo.
+    \item \textbf{Luglio}: Verifica di eventuali stress idrico o diminuzione della vegetazione.
+\end{itemize}
+\end{frame}
+\begin{frame}{Mean and variation of NDVI}
+#Da gennaio a maggio, c'è un graduale aumento della media dell'NDVI, 
+#che potrebbe indicare una crescita progressiva della vegetazione in primavera.
+#A luglio, si osserva un leggero calo della media dell'NDVI rispetto a maggio,
+#che potrebbe essere dovuto a vari fattori, come un clima più caldo o periodi 
+#di siccità che iniziano a influenzare la vegetazione.
+
+#La variabilità dell'NDVI è massima a gennaio, suggerendo che la copertura vegetale
+#è molto eterogenea in questo mese. Potrebbe essere legato a fattori come la
+#presenza di aree con vegetazione densa alternata a zone spoglie o a zone con
+#differenze significative nella tipologia di vegetazione.
+#Da gennaio a luglio, la deviazione standard diminuisce, indicando che la
+#copertura vegetale diventa progressivamente più omogenea. Questo potrebbe
+#essere dovuto a una crescita più uniforme della vegetazione con l'avanzare
+#della stagione, o all'eliminazione di zone meno vegetate con l'inizio della
+#primavera e dell'estate.
+\end{frame}
+\begin{frame}{NDVI mean and variance visualization among 2024 months}
+\begin{figure}
+    \centering
+    \includegraphics[width=1.1\linewidth]{varianza vs media mesi.png}
+    \caption{Enter Caption}
+    \label{fig:enter-label}
+\end{figure}
+    
+\end{frame}
+    
+\end{FRAME}
+\end{document}
