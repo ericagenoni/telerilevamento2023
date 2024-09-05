@@ -5,8 +5,11 @@
 \usepackage{caption} % For caption formatting
 \usetheme{Pittsburgh}
 \usepackage{verbatim} % For verbatim environment
+\usepackage{tikz} % Per disegnare forme e annotazioni
+\usepackage{listings} % Per il codice in formato leggibile
 
-\title{Valutazione del Trend di Disseccamento da Gennaio a Luglio 2024 della Parte Nord del Grande Aral}
+
+\title{Assessment of the Drying Trend from January to July 2024 in the Northern Part of the Large Aral Sea}
 \author{Erica Genoni}
 \date{Settembre 2024}
 
@@ -16,15 +19,46 @@
 
 \section{Introduction}
 \begin{frame}{Introduction - The Big Aral}
-\RaggedRight
-Il Grande Aral è un bacino lacustre che si è formato a causa del progressivo prosciugamento del Lago d'Aral, un tempo uno dei più grandi laghi salati del mondo. Nel corso degli anni, il Grande Aral si è ulteriormente diviso in laghi più piccoli a causa della continua diminuzione del livello dell'acqua. Purtroppo, il bacino più orientale si è completamente prosciugato nel 2011.\\[1em]
-Ubicazione: Si trova al confine tra Uzbekistan e Kazakistan, nell'Asia centrale.
+\begin{columns} % Inizia l'ambiente delle colonne
+    \begin{column}{0.5\textwidth} % Colonna per l'immagine (40% della larghezza)
+        \centering
+        \includegraphics[width=\linewidth]{Cattura.PNG}
+        \captionof{figure}{Changing Profile of the Aral
+Sea 1960–2011; Micklin, 2007}
+        \label{fig:enter-label}
+    \end{column}
+
+    \begin{column}{0.6\textwidth} % Colonna per il testo (60% della larghezza)
+        \RaggedRight % Allinea il testo a sinistra
+        The Aral Sea is a huge terminal lake located among the deserts of Central Asia. Over the past 10 millennia, it has repeatedly filled and dried, owing both to natural and human forces.
+       
+    \end{column}
+\end{columns}
+
 \end{frame}
 
-\begin{frame}{Aim of This Project}
-This study aimed to evaluate the drying trends occurring between January, March, May, and July 2024. Methods employed included: \\
-- Analysis of NDVI (Normalized Difference Vegetation Index) to monitor vegetation health over time.
-- NDVI calculations using Sentinel-2 satellite imagery.
+\begin{frame}{Aims of this project}
+
+\begin{columns} % Inizia l'ambiente delle colonne
+    \begin{column}{0.5\textwidth} % Colonna per l'immagine (50% della larghezza)
+        \centering
+        \begin{tikzpicture}
+            \node[anchor=south west, inner sep=0] (image) at (1,1) {\includegraphics[width=\linewidth]{Cattura1.PNG}};
+            % Disegna un rettangolo sull'immagine
+            \draw[red, thick] (2,2) rectangle (6,6); % Modifica le coordinate in base all'area da evidenziare
+            % Aggiungi una descrizione
+            \node[fill=white, opacity=0.7, text=black, anchor=north west] at (2,6) {Highlighted Area}; % Modifica la posizione e il testo
+        \end{tikzpicture}
+        \captionof{figure}{Profile of the Aral Sea 2011; Micklin, 2007}
+        \label{fig:enter-label}
+    \end{column}
+
+    \begin{column}{0.5\textwidth} % Colonna per il testo (50% della larghezza)
+        \RaggedRight % Allinea il testo a sinistra
+        For this project, I investigated a part of the extensive Aral Sea across January, March, May, and July 2024 to assess if there was any noticeable trend towards dryness over the course of this year.
+    \end{column}
+\end{columns}
+
 \end{frame}
 
 \section{Methods}
@@ -34,18 +68,31 @@ The Copernicus Sentinel-2 mission provided the satellite imagery for this study.
 \begin{itemize}
     \item Acquisition of Sentinel-2 images for specified months.
     \item Calculation of NDVI using the formula: \[\text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}}\]
-    \item Visualization and comparison of NDVI values across different months.
+    \item Calculation of MDVI using the formula: \[\text{MNDVI} = \frac{\text{Green} - \text{Swir}}{\text{Green} + \text{Swir}}\].
 \end{itemize}
 \end{frame}
 
 \begin{frame}{Calcolo NDVI}
 \begin{block}{NDVI Calculation}
-\begin{verbatim}
+    \begin{itemize}
+        \item \texttt{R:} 
+        \begin{lstlisting}
 calc_ndvi <- function(nir, red) {
-  return((nir - red) / (nir + red))}
-\end{verbatim}
+  return((nir - red) / (nir + red))
+}
+        \end{lstlisting}
+        \item \texttt{R:}
+        \begin{lstlisting}
+calc_mndwi <- function(green, swir) {
+  return((green - swir) / (green + swir))
+}
+        \end{lstlisting}
+    \end{itemize}
 \end{block}
 \end{frame}
+
+\end{document}
+
 
 \begin{frame}{NDVI Visualization}
 \begin{figure}
@@ -90,8 +137,48 @@ I grafici mostrano l'andamento del NDVI dal Gennaio al Luglio 2024.\\[1em]
     \caption{Enter Caption}
     \label{fig:enter-label}
 \end{figure}
+\end{frame}
+
+
+    \begin{frame}{MNDVI mean and variance visualization among 2024 months}
+\begin{figure}
+    \centering
+    \includegraphics[width=1.1\linewidth]{MNDWI GENNAIO.png}
+    \caption{Enter Caption}
+    \label{fig:enter-label}
+\end{figure}
     
 \end{frame}
+
+    \begin{frame}{MNDVI mean and variance visualization among 2024 months}
+\begin{figure}
+    \centering
+    \includegraphics[width=1.1\linewidth]{MNDWI MARZO.png}
+    \caption{Enter Caption}
+    \label{fig:enter-label}
+\end{figure}
     
-\end{FRAME}
+\end{frame}
+
+
+    \begin{frame}{MNDVI mean and variance visualization among 2024 months}
+\begin{figure}
+    \centering
+    \includegraphics[width=1.1\linewidth]{MNDWI MAGGIO.png}
+    \caption{Enter Caption}
+    \label{fig:enter-label}
+\end{figure}
+    
+\end{frame}
+
+    \begin{frame}{MNDVI mean and variance visualization among 2024 months}
+\begin{figure}
+    \centering
+    \includegraphics[width=1.1\linewidth]{MNDWI LUGLIO.png}
+    \caption{Enter Caption}
+    \label{fig:enter-label}
+\end{figure}
+    
+\end{frame}
+
 \end{document}
