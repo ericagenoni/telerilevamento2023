@@ -1,68 +1,68 @@
-#classification of remote sensing data via RStoolbox
+# Classificazione dei dati di telerilevamento utilizzando il pacchetto RStoolbox
 
 library(raster)
 install.packages("RStoolbox")
 library(RStoolbox)
 
-#setting the working directory
+# Impostiamo la directory di lavoro
 
 setwd("C:/telerilevamento_2024") # Windows
 
-# data import
+# Importazione dei dati
 so <- brick("Solar_Orbiter_s_first_views_of_the_Sun_pillars.jpg")
 
-# Let's plot our picture changing the stretch parameter, which changes the color scale in terms of brightness
-plotRGB(so, 1, 2, 3, stretch="lin")
-plotRGB(so, 1, 2, 3, stretch="hist")# this shifts the center point of our colors further in brightness
+# Visualizziamo l'immagine modificando il parametro di "stretch", che modifica la scala dei colori in termini di luminosità
+plotRGB(so, 1, 2, 3, stretch="lin")  # Stiramento lineare dei colori
+plotRGB(so, 1, 2, 3, stretch="hist") # Stiramento basato sull'istogramma; questo sposta il punto centrale dei colori in termini di luminosità
 
-
-
-# Classifying the solar data
-#We have the original reflectance data, and we want to classify it into three classes.
-
+# Classificazione dei dati solari
+# Abbiamo i dati di riflettanza originali e vogliamo classificarli in tre classi.
 
 # https://rspatial.org/raster/rs/4-unsupclassification.html
-#The initial step in employing the subsequent classification function involves
-#transforming the image and its colors into a sequence of continuous values. This entails creating a table containing all the values. The Getvalues function extracts values from an image and stores them in a table.
+# Il primo passo per utilizzare la funzione di classificazione seguente consiste
+# nel trasformare l'immagine e i suoi colori in una sequenza di valori continui. 
+# Questo comporta la creazione di una tabella contenente tutti i valori. 
+# La funzione getValues estrae i valori da un'immagine e li memorizza in una tabella.
 
-# 1. Get all the single values
+# 1. Otteniamo tutti i singoli valori
 singlenr <- getValues(so)
 singlenr
-#singlenr = single numbers
-#The getvalues function extracts each individual pixel from the image and converts it into a vector format. These values represent the reflectances across all bands.
+# singlenr = singoli numeri
+# La funzione getValues estrae ciascun pixel dall'immagine e lo converte in un formato vettoriale.
+# Questi valori rappresentano le riflettanze su tutte le bande.
 
+set.seed(99) # Imposta il seme per il generatore di numeri casuali (per riproducibilità)
 
-set.seed(99)#This is used to set the seed for the random number generator (for reproducibility)
-
-# 2. Classify
+# 2. Classificazione
 kcluster <- kmeans(singlenr, centers = 3)
 kcluster
-#K-means operates on tabular data. It's named as such because it clusters pixels based on classes.
-#K-means: A technique that employs a set of means (centroids) to group pixels into classes based on the average of their spectral values (centroids).
-#Centroids of the point clouds are identified, and a number of distances are generated corresponding to the number of point clouds. The closer a pixel is to the 
-#centroid of a point cloud, the higher the probability that an unknown pixel belongs to that particular point cloud.
+# K-means opera su dati tabellari, raggruppando i pixel in base a classi.
+# K-means: una tecnica che utilizza una serie di centroidi per raggruppare i pixel in classi in base alla media dei loro valori spettrali.
+# I centroidi delle nuvole di punti vengono identificati, e vengono generate distanze corrispondenti al numero di nuvole di punti. 
+# Più un pixel è vicino al centroide di una nuvola di punti, maggiore è la probabilità che quel pixel appartenga a quella nuvola di punti.
 
-
-# 3. Set values to a raster on the basis of so
+# 3. Assegna i valori al raster sulla base di 'so'
 soclass <- setValues(so[[1]], kcluster$cluster) 
-# assign new values to a raster object
-#We reassign the obtained values based on the previous image. 
-#[[1]] I use a single band to store the classification values.
-#The kcluster function comprises various components, among which we utilize the 'cluster' component.
+# Assegna nuovi valori a un oggetto raster.
+# Riassegniamo i valori ottenuti sulla base dell'immagine precedente. 
+# [[1]] utilizza una singola banda per memorizzare i valori di classificazione.
+# La funzione kcluster ha vari componenti, tra cui utilizziamo il componente 'cluster'.
 
-
+# Definiamo una palette di colori per visualizzare i dati classificati
 cl <- colorRampPalette(c('yellow','black','red'))(100)
 plot(soclass, col=cl)
-#class number  1 (yellow) = medium energetic level: 41.45 %
-#class number  2 (black) = high energetic level: 21.22 %
-#class number  3 (red) = lower energetic level: 37.33 %
-#This is unsupervised classification, where we only specify the number of classes
 
-#What is the percentage of pixels with high or low energy? We can use a frequency. 
+# Classificazione delle energie: 
+# numero classe 1 (giallo) = livello energetico medio: 41,45 %
+# numero classe 2 (nero) = livello energetico alto: 21,22 %
+# numero classe 3 (rosso) = livello energetico basso: 37,33 %
+# Questa è una classificazione non supervisionata, in cui specifichiamo solo il numero di classi.
+
+# Qual è la percentuale di pixel con energia alta o bassa? Possiamo usare una frequenza.
 frequencies <- freq(soclass)
 frequencies
-soclass #to see the pixels number of the image
-tot= 2221440
-percentages = frequencies*100/ tot
+soclass # per vedere il numero di pixel dell'immagine
+tot = 2221440
+percentages = frequencies * 100 / tot
 percentages
 
