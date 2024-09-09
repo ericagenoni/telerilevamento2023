@@ -1,116 +1,113 @@
-# My first code in Git Hub
-# Let's install the raster package
+# Il mio primo codice su GitHub
+# Installiamo il pacchetto "raster"
 
 install.packages("raster")
 
 library(raster)
 
-#setting the working directory
+# Impostiamo la directory di lavoro
 
-setwd("C:/telerilevamento_2024/p224r63_2011")#windows
+setwd("C:/telerilevamento_2024/p224r63_2011") # Windows
 
-# "brick" function (included in "raster" package) swill store all these data together and project them into R. Let's create a new 
-# file with all these data inside.
+# La funzione "brick" (inclusa nel pacchetto "raster") raccoglie tutti questi dati insieme e li carica in R.
+# Creiamo un nuovo file con tutti questi dati al suo interno.
 l2011 <- brick("p224r63_2011_masked.grd")
 
-# plotting data 
+# Visualizziamo i dati
 plot(l2011)
 
-# https://www.r-graph-gallery.com/42-colors-names.html (is the website where you can choose a color palette.)
-cl <- colorRampPalette(c("red","orange","yellow"))(100) # 100 are the shades
-#plotting data with the new palette
+# https://www.r-graph-gallery.com/42-colors-names.html (sito web dove si può scegliere una palette di colori.)
+cl <- colorRampPalette(c("red", "orange", "yellow"))(100) # 100 indica le sfumature
+# Visualizziamo i dati con la nuova palette
 plot(l2011, col=cl)
 
-# Exercise: change the colour gamut for all the images
-cl <- colorRampPalette(c("blue","darkorchid","aquamarine"))(100) # 100 are the shades
+# Esercizio: cambiare la gamma di colori per tutte le immagini
+cl <- colorRampPalette(c("blue", "darkorchid", "aquamarine"))(100) # 100 indica le sfumature
 plot(l2011, col=cl)
 
-#exercise: plot the NIR band 
-# b1 = blue
-# b2 = green
-# b3 = red
-# b4 = infrared NIR
+# Esercizio: visualizzare la banda NIR
+# b1 = blu
+# b2 = verde
+# b3 = rosso
+# b4 = infrarosso NIR
 
-# plotting one element
-plot(l2011[[4]], col=cl)# this is the plot of the band number 4.
-#or we could even recall it by its name: l2011$b4_sre
+# Visualizziamo un singolo elemento
+plot(l2011[[4]], col=cl) # Visualizza la banda numero 4.
+# Oppure possiamo richiamarla per nome: l2011$B4_sre
 plot(l2011$B4_sre, col=cl)
 dev.off()
-#to close all the window dev.off()
+# Per chiudere tutte le finestre di grafico aperte dev.off()
 
 nir <- l2011[[4]] 
-# or: nir <- l2011$B4_sre
+# Oppure: nir <- l2011$B4_sre
 plot(nir, col=cl)
 
-
-# Export graphs in R
-#the function pdf allow us to export pdf files
+# Esportare grafici in R
+# La funzione pdf ci permette di esportare grafici in formato PDF
 pdf("myfirstgraph.pdf")
 plot(l2011$B4_sre, col=cl)
 dev.off()
 
-
-# Exercise two
+# Esercizio due
 pdf("mysecondtgraph.pdf")
 par(mfrow=c(2,2))
-#par(): This is the main function for setting or getting graphical parameters.
-#mfrow: This is a specific argument within the par() function that controls the arrangement of multiple plots.
-#c(2,2): This is a vector specifying the number of rows and columns for the plot grid. In this case, c(2,2) indicates a 2x2 grid.
+# par(): Questa è la funzione principale per impostare o ottenere i parametri grafici.
+# mfrow: Questo è un argomento specifico della funzione par() che controlla la disposizione di più grafici.
+# c(2,2): Questo è un vettore che specifica il numero di righe e colonne per la griglia di grafici. In questo caso, c(2,2) indica una griglia di 2x2.
 
-#Now let's choose a color palette for each band.
-#B1 Blue
-clb <- colorRampPalette(c("blue", "blue4", "blueviolet")) (100)
+# Ora scegliamo una palette di colori per ogni banda.
+# B1 Blu
+clb <- colorRampPalette(c("blue", "blue4", "blueviolet"))(100)
 plot(l2011[[1]], col=clb)
 
-#B2 Green
-clg <- colorRampPalette(c("chartreuse", "chartreuse3", "chartreuse4")) (100)
+# B2 Verde
+clg <- colorRampPalette(c("chartreuse", "chartreuse3", "chartreuse4"))(100)
 plot(l2011[[2]], col=clg)
 
-#B3 Red
-clr <- colorRampPalette(c("brown1", "brown3", "brown4")) (100)
+# B3 Rosso
+clr <- colorRampPalette(c("brown1", "brown3", "brown4"))(100)
 plot(l2011[[3]], col=clr)
 
-#B4 NIR
-clrin <-  colorRampPalette(c("darkmagenta", "darkorchid1", "darkorchid4")) (100)
+# B4 NIR
+clrin <- colorRampPalette(c("darkmagenta", "darkorchid1", "darkorchid4"))(100)
 plot(l2011[[4]], col=clrin)
 
 dev.off()
 
-# Plotting several bands in a multiframe
+# Visualizzare diverse bande in un multiframe
 par(mfrow=c(2,1))
 plot(l2011[[3]], col=cl)
 plot(l2011[[4]], col=cl)
 
-# Plotting the first 4 layers / bands
+# Visualizzare le prime 4 bande/livelli
 par(mfrow=c(2,2))
 
-
-# RGB plotting
+# Visualizzazione RGB
 plotRGB(l2011, r=3, g=2, b=1, stretch="Lin")
 plotRGB(l2011, r=4, g=3, b=2, stretch="Lin")
 plotRGB(l2011, r=3, g=4, b=2, stretch="Lin")
 plotRGB(l2011, r=3, g=2, b=4, stretch="Lin")
 
-# Multiframe with natural and false colours
+# Multiframe con colori naturali e falsi
 par(mfrow=c(2,1))
 plotRGB(l2011, r=3, g=2, b=1, stretch="Lin")
 plotRGB(l2011, r=4, g=3, b=2, stretch="Lin")
 
-#plotRGB(l2011, ...): This suggests that plotRGB() is a function that takes an object called l2011 (presumably containing data) as the first argument, followed by other arguments for color specification.
-#r=3, g=2, b=1: These arguments likely control the red (R), green (G), and blue (B) components of the colors used in the plot. In this case, the color would be a shade of red with specific intensity levels.
-#stretch="Lin": This argument might control how the color values are stretched or scaled within the plot. "Lin" could indicate a linear stretching.
+# plotRGB(l2011, ...): Questa funzione suggerisce che plotRGB() prende come primo argomento un oggetto chiamato l2011 (presumibilmente contenente dati), seguito da altri argomenti per specificare i colori.
+# r=3, g=2, b=1: Questi argomenti controllano le componenti rosso (R), verde (G) e blu (B) dei colori utilizzati nel grafico.
+# stretch="Lin": Questo argomento controlla come i valori dei colori vengono "stirati" o scalati all'interno del grafico. "Lin" potrebbe indicare uno stiramento lineare.
 
-# Histogram stretching
+# Stiramento istogramma
 par(mfrow=c(2,1))
 plotRGB(l2011, r=3, g=2, b=1, stretch="Hist")
 plotRGB(l2011, r=4, g=3, b=2, stretch="Hist")
 
-# Linear vs. Histogram stretching
+# Stiramento lineare vs. istogramma
 par(mfrow=c(2,1))
 plotRGB(l2011, r=4, g=3, b=2, stretch="Lin")
 plotRGB(l2011, r=4, g=3, b=2, stretch="Hist")
 
-# Exercise: plot the NIR band
+# Esercizio: visualizzare la banda NIR
 plot(l2011[[4]])
 
 plotRGB(l2011, r=3, g=2, b=1, stretch="Lin")
@@ -118,16 +115,16 @@ plotRGB(l2011, r=4, g=3, b=2, stretch="Lin")
 plotRGB(l2011, r=3, g=4, b=2, stretch="Lin")
 plotRGB(l2011, r=3, g=2, b=4, stretch="Lin")
 
-# Exercise: import the 1988 image
+# Esercizio: importare l'immagine del 1988
 l1988 <- brick("p224r63_1988_masked.grd")
 
-# Exercise: plot in RGB space (natural colours)
+# Esercizio: visualizzare in spazio RGB (colori naturali)
 plotRGB(l1988, r=3, g=2, b=1, stretch="Lin")
 plotRGB(l1988, r=4, g=3, b=2, stretch="Lin")
 
 plotRGB(l1988, 4, 3, 2, stretch="Lin")
 
-# multiframe
+# Multiframe
 par(mfrow=c(2,1))
 plotRGB(l1988, 4, 3, 2, stretch="Lin")
 plotRGB(l2011, 4, 3, 2, stretch="Lin")
@@ -135,9 +132,10 @@ plotRGB(l2011, 4, 3, 2, stretch="Lin")
 dev.off()
 plotRGB(l1988, 4, 3, 2, stretch="Hist")
 
-# multiframe with 4 images
+# Multiframe con 4 immagini
 par(mfrow=c(2,2))
 plotRGB(l1988, 4, 3, 2, stretch="Lin")
 plotRGB(l2011, 4, 3, 2, stretch="Lin")
 plotRGB(l1988, 4, 3, 2, stretch="Hist")
 plotRGB(l2011, 4, 3, 2, stretch="Hist")
+
