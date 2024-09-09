@@ -1,96 +1,92 @@
 #COPERNICUS
-# Download and visualize data of Earth Observation
+# Download e visualizzazione dei dati Earth Observation
 
-# Install and load the required packages
-library(raster)
-library(ggplot2)
-library(viridis)
-install.packages("ncdf4")
-library(ncdf4)
+# Installazione e caricamento  dei pacchetti necessari
+library(raster)    # Pacchetto per la manipolazione e analisi dei dati raster
+library(ggplot2)   # Pacchetto per la visualizzazione dei dati
+library(viridis)   # Pacchetto per la scala di colori viridis
+install.packages("ncdf4") # Installazione del pacchetto ncdf4 per gestire i file NetCDF
+library(ncdf4)     # Caricamento del pacchetto ncdf4
 
-# Register and download data from:
+# Registrazione e scaricamento dati da:
 # https://land.copernicus.vgt.vito.be/PDF/portal/Application.html
 
-# Upload data as raster object
-soil_moisture <- raster("c_gls_SSM1km_202305090000_CEURO_S1CSAR_V1.2.1.nc")
-soil_moisture
-ncell(soil_moisture) # 28311808
-plot(soil_moisture)
+# Caricamento dei dati come oggetto raster
+soil_moisture <- raster("c_gls_SSM1km_202305090000_CEURO_S1CSAR_V1.2.1.nc") # Caricamento del file NetCDF come raster
+soil_moisture # Visualizza l'oggetto raster caricato
+ncell(soil_moisture) # Numero di celle nel raster (28311808)
+plot(soil_moisture) # Visualizzazione del raster dell'umidità del suolo
 
-# Coerce data into a dataframe
-soil_moisture_df <- as.data.frame(soil_moisture, xy=T)
+# Trasformazione del raster in un dataframe
+soil_moisture_df <- as.data.frame(soil_moisture, xy=T) # Conversione del raster in dataframe con coordinate x, y
 
-# Columns' names of the dataframe
-colnames(soil_moisture_df)
+# Nomi delle colonne del dataframe
+colnames(soil_moisture_df) # Visualizzazione dei nomi delle colonne del dataframe
 
-# Plot with ggplot()
+# Creazione del grafico con ggplot
 ggplot() +
-  geom_raster(soil_moisture_df,
-              mapping=aes(x=x, y=y, fill=Surface.Soil.Moisture)) +
-  ggtitle("Soil Moisture from Copernicus")
+  geom_raster(soil_moisture_df, # Definisce i dati per il raster
+              mapping=aes(x=x, y=y, fill=Surface.Soil.Moisture)) + # Specifica le coordinate e la variabile di riempimento
+  ggtitle("Soil Moisture from Copernicus") # Aggiunge un titolo al grafico
 
-# Let's crop image by coordinates
-ext <- c(23, 30, 62, 68)
-soil_moisture_crop <- crop(soil_moisture, ext)
-soil_moisture_crop
+# Ritaglio dell'immagine con coordinate specifiche
+ext <- c(23, 30, 62, 68) # Definisce l'estensione delle coordinate (bounding box) per il ritaglio
+soil_moisture_crop <- crop(soil_moisture, ext) # Ritaglia l'immagine raster utilizzando l'estensione definita
+soil_moisture_crop # Visualizza l'immagine ritagliata
 
-# Coerce the cropped image into a dataframe
-soil_moisture_crop_df <- as.data.frame(soil_moisture_crop, xy=T)
-soil_moisture_crop_df
+# Trasforma l'immagine ritagliata in un dataframe
+soil_moisture_crop_df <- as.data.frame(soil_moisture_crop, xy=T) # Conversione dell'immagine ritagliata in dataframe
+soil_moisture_crop_df # Visualizza il dataframe ritagliato
 
-# Plot the cropped image with ggplot(), adding viridis scale colour
+# Creazione di un grafico dell'immagine ritagliata con ggplot, aggiungendo la scala di colori viridis
 ggplot() +
   geom_raster(soil_moisture_crop_df,
               mapping=aes(x=x, y=y, fill=Surface.Soil.Moisture)) +
   ggtitle("Soil Moisture from Copernicus") +
-  scale_fill_viridis()
+  scale_fill_viridis() # Aggiunge la scala di colori Viridis per una migliore interpretazione dei dati
 
+# ESERCIZIO: scegliere un'altra immagine da Copernicus e seguire lo stesso percorso
 
+# Caricamento dati come oggetto raster
+forest_cover <- raster("c_gls_FCOVER-RT0_202006300000_GLOBE_PROBAV_V2.0.1.nc") # Caricamento di un altro file NetCDF come raster
+forest_cover # Visualizzazione del raster caricato
+ncell(forest_cover) # Numero di celle nel raster (28311808)
+plot(forest_cover) # Visualizzazione del raster della copertura forestale
 
+# Il file è troppo grande, lo ritagliamo
+ext_1 <- c(14, 19, 39, 42) # Definisce l'estensione delle coordinate (bounding box) per il ritaglio - Parte del Sud Italia
+forest_cover_crop <- crop(forest_cover, ext_1) # Ritaglia il raster utilizzando l'estensione definita
+forest_cover_crop # Visualizzazione  dell'immagine ritagliata
+plot(forest_cover_crop) # Visualizzazione del raster ritagliato
 
+# Trasformazione dell'immagine ritagliata in un dataframe
+forest_cover_crop_df <- as.data.frame(forest_cover_crop, xy=T) # Conversione dell'immagine ritagliata in dataframe
 
-# EXERCISE: chose another image from Copernicus and follow the same path
+# Nomi delle colonne del dataframe
+colnames(forest_cover_crop_df) # Visualizza i nomi delle colonne del dataframe (Fraction.of.green.Vegetation.Cover.1km)
 
-# Upload data as raster object
-forest_cover <- raster("c_gls_FCOVER-RT0_202006300000_GLOBE_PROBAV_V2.0.1.nc")
-forest_cover
-ncell(forest_cover) # 28311808
-plot(forest_cover)
-
-# The file size is too big, let's crop it
-ext_1 <- c(14, 19, 39, 42) # Part of South Italy
-forest_cover_crop <- crop(forest_cover, ext_1)
-forest_cover_crop
-plot(forest_cover_crop)
-
-# Coerce into a dataframe
-forest_cover_crop_df <- as.data.frame(forest_cover_crop, xy=T)
-
-# Columns' names of the dataframe
-colnames(forest_cover_crop_df) # Fraction.of.green.Vegetation.Cover.1km
-
-# Plot with ggplot()
+# Creazione di un grafico con ggplot
 ggplot() +
   geom_raster(forest_cover_crop_df,
               mapping=aes(x=x, y=y, fill=Fraction.of.green.Vegetation.Cover.1km)) +
   ggtitle("Forest Cover from Copernicus") +
-  scale_fill_viridis()
+  scale_fill_viridis() # Aggiunge la scala di colori Viridis
 
-# Let's focus on Salento area
-ext_2 <- c(17, 19, 39.5, 41) # Salento
-forest_cover_Sal <- crop(forest_cover, ext_2)
-forest_cover_Sal
-plot(forest_cover_Sal)
+# Concentriamoci sull'area del Salento
+ext_2 <- c(17, 19, 39.5, 41) # Definisce l'estensione delle coordinate (bounding box) per il ritaglio - Area del Salento
+forest_cover_Sal <- crop(forest_cover, ext_2) # Ritaglia il raster per l'area del Salento
+forest_cover_Sal # Visualizza l'immagine ritagliata
+plot(forest_cover_Sal) # Visualizza il raster ritagliato
 
-# Coerce into a dataframe
-forest_cover_Sal_df <- as.data.frame(forest_cover_Sal, xy=T)
+# Trasformazione  dell'immagine ritagliata in un dataframe
+forest_cover_Sal_df <- as.data.frame(forest_cover_Sal, xy=T) # Conversione dell'immagine ritagliata in dataframe
 
-# Columns' names of the dataframe
-colnames(forest_cover_Sal_df) # Fraction.of.green.Vegetation.Cover.1km
+# Nomi delle colonne del dataframe
+colnames(forest_cover_Sal_df) # Visualizza i nomi delle colonne del dataframe (Fraction.of.green.Vegetation.Cover.1km)
 
-# Plot with ggplot()
+# Creazione di un grafico con ggplot
 ggplot() +
   geom_raster(forest_cover_Sal_df,
               mapping=aes(x=x, y=y, fill=Fraction.of.green.Vegetation.Cover.1km)) +
   ggtitle("Forest Cover of Salento from Copernicus") +
-  scale_fill_viridis()
+  scale_fill_viridis() # Aggiunge la scala di colori Viridis
