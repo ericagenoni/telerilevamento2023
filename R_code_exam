@@ -40,12 +40,14 @@ tci_files <- list.files(pattern = "TCI_20m.jp2")
 
 # Caricamento delle bande di immagine Sentinel per i vari mesi
 # Banda Blu
+
 b2_l <- raster("T40TFR_20240709T065621_B02_20m.jp2")   #luglio 2024
 b2_mg <- raster("T40TFR_20240530T065621_B02_20m.jp2")  #maggio 2024
 b2_mr <- raster("T40TFR_20240301T065821_B02_20m.jp2")  #marzo  2024
 b2_g <- raster("T40TFR_20240101T070301_B02_20m.jp2")  #gennaio 2024
 
 # Plot delle bande blu per ciascun mese
+
 par(mfrow = c(2, 2))
 plot(b2_l, main = "Luglio 2024", col = viridis(100))
 plot(b2_mg, main = "Maggio 2024", col = viridis(100))
@@ -79,6 +81,7 @@ r4_mr <- raster("T40TFR_20240301T065821_B04_20m.jp2")
 r4_g <- raster("T40TFR_20240101T070301_B04_20m.jp2")
 
 # Plot delle bande rosse
+
 par(mfrow = c(2, 2))
 plot(r4_l, main = "Luglio 2024", col = viridis(100))
 plot(r4_mg, main = "Maggio 2024", col = viridis(100))
@@ -138,6 +141,120 @@ plotRGB(rgb_stack_mr, main = "Marzo 2024")
 plotRGB(rgb_stack_mg, main = "Maggio 2024")
 plotRGB(rgb_stack_l, main = "Luglio 2024")
 
+###############################ANALISI MULTIVARIATA E PCA #############################
+# Creazione di stack temporali per tutte le bande normalizzate
+stack_jan <- stack(b2_norm_g, g3_norm_g, r4_norm_g, nir_norm_g)   # Gennaio
+stack_mar <- stack(b2_norm_mr, g3_norm_mr, r4_norm_mr, nir_norm_mr)  # Marzo
+stack_may <- stack(b2_norm_mg, g3_norm_mg, r4_norm_mg, nir_norm_mg)  # Maggio
+stack_jul <- stack(b2_norm_l, g3_norm_l, r4_norm_l, nir_norm_l)   # Luglio
+
+# Unione di tutti gli stack in uno stack temporale unico
+stack_all <- stack(stack_jan, stack_mar, stack_may, stack_jul)
+
+# Esecuzione della PCA per analizzare i cambiamenti temporali
+sample_data <- sampleRandom(stack_all, 10000)  # Estrazione di un campione casuale di pixel
+pca_result <- prcomp(sample_data)  # Esecuzione della PCA
+summary(pca_result)  # Visualizzazione della varianza spiegata da ciascuna componente
+
+# Predizione delle componenti principali per creare le mappe PCA
+pca_maps <- predict(stack_all, pca_result, index=c(1:3))
+plot(pca_maps)
+
+# Calcolo delle differenze temporali tra le immagini
+diff_jan_mar <- stack_mar - stack_jan  # Differenza tra marzo e gennaio
+diff_mar_may <- stack_may - stack_mar  # Differenza tra maggio e marzo
+diff_may_jul <- stack_jul - stack_may  # Differenza tra luglio e maggio
+diff_jan_jul <- stack_jul - stack_jan  # Differenza tra luglio e gennaio
+
+# Visualizzazione delle differenze temporali tra i periodi
+par(mfrow = c(2, 2))
+plot(diff_jan_mar, main = "Differenza Marzo - Gennaio", col = viridis(100))
+plot(diff_mar_may, main = "Differenza Maggio - Marzo", col = viridis(100))
+plot(diff_may_jul, main = "Differenza Luglio - Maggio", col = viridis(100))
+plot(diff_jan_jul, main = "Differenza Gennaio - Luglio", col = viridis(100))
+
+# Calcolo della deviazione standard focale per ogni mese
+sd_jan <- focal(stack_jan[[1]], matrix(1/9, 3, 3), fun=sd)
+sd_mar <- focal(stack_mar[[1]], matrix(1/9, 3, 3), fun=sd)
+sd_may <- focal(stack_may[[1]], matrix(1/9, 3, 3), fun=sd)
+sd_jul <- focal(stack_jul[[1]], matrix(1/9, 3, 3), fun=sd)
+
+# Visualizzazione della deviazione standard focale per ciascun mese
+par(mfrow = c(2, 2))
+plot(sd_jan, main = "Deviazione Standard Focale - Gennaio", col = viridis(100))
+plot(sd_mar, main = "Deviazione Standard Focale - Marzo", col = viridis(100))
+plot(sd_may, main = "Deviazione Standard Focale - Maggio", col = viridis(100))
+plot(sd_jul, main = "Deviazione Standard Focale - Luglio", col = viridis(100))
+
+#############################CLASSIFICAZIONE#####################
+# CLASSIFICAZIONE UTILIZZANDO K-MEANS
+
+# 1. Estrazione dei valori di tutte le bande per Gennaio
+values_gennaio <- getValues(rgb_stack_g)
+
+# 2. Applicazione del clustering K-means (scegli 2 o più centri di clustering in base alle tue esigenze)
+kmeans_gennaio <- kmeans(values_gennaio, centers=2) # 2 centri di clustering: acqua e suolo nudo
+
+# 3. Creazione dell'immagine classificata per Gennaio
+classified_gennaio <- setValues(rgb_stack_g[[1]], kmeans_gennaio$cluster)
+
+# Plot dell'immagine classificata per Gennaio
+plot(classified_gennaio, main = "Classificazione Gennaio 2024", col = c("blue", "brown"))
+
+# Ripeti i passi per Marzo, Maggio, Luglio
+values_marzo <- getValues(rgb_stack_mr)
+kmeans_marzo <- kmeans(values_marzo, centers=2)
+classified_marzo <- setValues(rgb_stack_mr[[1]], kmeans_marzo$cluster)
+
+values_maggio <- getValues(rgb_stack_mg)
+kmeans_maggio <- kmeans(values_maggio, centers=2)
+classified_maggio <- setValues(rgb_stack_mg[[1]], kmeans_maggio$cluster)
+
+values_luglio <- getValues(rgb_stack_l)
+kmeans_luglio <- kmeans(values_luglio, centers=2)
+classified_luglio <- setValues(rgb_stack_l[[1]], kmeans_luglio$cluster)
+
+# Visualizzazione delle immagini classificate per ciascun mese
+par(mfrow = c(2, 2))
+plot(classified_gennaio, main = "Classificazione Gennaio 2024", col = c("blue", "brown"))
+plot(classified_marzo, main = "Classificazione Marzo 2024", col = c("blue", "brown"))
+plot(classified_maggio, main = "Classificazione Maggio 2024", col = c("blue", "brown"))
+plot(classified_luglio, main = "Classificazione Luglio 2024", col = c("blue", "brown"))
+
+# Calcolo delle percentuali delle classi per ciascun periodo
+freq_gennaio <- freq(classified_gennaio)
+tot_gennaio <- ncell(classified_gennaio)
+percentage_gennaio <- (freq_gennaio * 100) / tot_gennaio
+
+freq_marzo <- freq(classified_marzo)
+tot_marzo <- ncell(classified_marzo)
+percentage_marzo <- (freq_marzo * 100) / tot_marzo
+
+freq_maggio <- freq(classified_maggio)
+tot_maggio <- ncell(classified_maggio)
+percentage_maggio <- (freq_maggio * 100) / tot_maggio
+
+freq_luglio <- freq(classified_luglio)
+tot_luglio <- ncell(classified_luglio)
+percentage_luglio <- (freq_luglio * 100) / tot_luglio
+
+# Creazione di un dataframe per analizzare le percentuali di classe nel tempo
+class_percentages <- data.frame(
+  Month = c("Gennaio", "Marzo", "Maggio", "Luglio"),
+  Water = c(percentage_gennaio[1, 2], percentage_marzo[1, 2], percentage_maggio[1, 2], percentage_luglio[1, 2]),
+  BareSoil = c(percentage_gennaio[2, 2], percentage_marzo[2, 2], percentage_maggio[2, 2], percentage_luglio[2, 2])
+)
+
+# Visualizzazione delle percentuali di classe per ogni mese
+ggplot(class_percentages, aes(x = Month)) +
+  geom_bar(aes(y = Water, fill = "Acqua"), stat = "identity", position = "dodge") +
+  geom_bar(aes(y = BareSoil, fill = "Suolo Nudo"), stat = "identity", position = "dodge") +
+  labs(title = "Percentuale di Acqua e Suolo Nudo nel Lago d'Aral (2024)",
+       y = "Percentuale", x = "Mese") +
+  scale_fill_manual(values = c("blue", "brown")) +
+  theme_minimal()
+
+
 ########################## CALCOLO NDVI ###############################################
 # Funzione per calcolare l'NDVI
 calc_ndvi <- function(nir, red) {
@@ -145,7 +262,15 @@ calc_ndvi <- function(nir, red) {
 }
 
 # Calcolo dell'NDVI per ciascun periodo
-ndvi_g <- calc_ndvi(nir_g, r4_g)     # NDVI Gennaio
+ndvi_g <- calc_ndvi(nir_g, r4_g)  
+print(ndvi_g # NDVI Gennaio
+      summary(ndvi_g)
+#Vegetazione Scarsa: Una grande porzione
+#dell'area ha una vegetazione scarsa o è composta da superfici non vegetate
+#(valori tra -0.5278 e 0.0894).
+#Poca Variabilità nella Vegetazione Sana: Il valore massimo è relativamente
+#basso (0.4667), suggerendo che non ci sono aree con vegetazione estremamente 
+#rigogliosa nell'immagine.
 ndvi_mr <- calc_ndvi(nir_mr, r4_mr)  # NDVI Marzo
 ndvi_mg <- calc_ndvi(nir_mg, r4_mg)  # NDVI Maggio
 ndvi_l <- calc_ndvi(nir_l, r4_l)     # NDVI Luglio
@@ -156,6 +281,47 @@ plot(ndvi_g, main = "NDVI Gennaio 2024", col = viridis(100))
 plot(ndvi_mr, main = "NDVI Marzo 2024", col = viridis(100))
 plot(ndvi_mg, main = "NDVI Maggio 2024", col = viridis(100))
 plot(ndvi_l, main = "NDVI Luglio 2024", col = viridis(100))
+
+summary_g <- summary(ndvi_g)
+summary_mr <- summary(ndvi_mr)
+summary_mg <- summary(ndvi_mg)
+summary_l <- summary(ndvi_l)
+
+# Stampa dei riassunti statistici NDVI
+print(summary_g)
+print(summary_mr)
+print(summary_mg)
+print(summary_l)
+
+# Creazione del dataframe con i valori NDVI
+ndvi_data <- data.frame(
+  Gennaio = as.vector(ndvi_g[]), # Convertiamo i raster in vettori per ogni mese
+  Marzo = as.vector(ndvi_mr[]),
+  Maggio = as.vector(ndvi_mg[]),
+  Luglio = as.vector(ndvi_l[])
+)
+
+# Rimozione dei valori NA, se presenti
+ndvi_data <- na.omit(ndvi_data)
+
+# Standardizzazione dei dati per la PCA
+ndvi_data_scaled <- scale(ndvi_data)
+
+# Calcolo della PCA
+pca_result <- prcomp(ndvi_data_scaled, center = TRUE, scale. = TRUE)
+
+# Visualizzazione dei risultati
+summary(pca_result)
+plot(pca_result$x[, 1], pca_result$x[, 2], 
+     col = c("red", "green", "blue", "orange"), 
+     pch = 16, 
+     xlab = "PC1", ylab = "PC2",
+     main = "PCA dei Valori NDVI tra i Mesi")
+
+# Aggiungi una legenda al grafico
+legend("topright", legend = c("Gennaio", "Marzo", "Maggio", "Luglio"),
+       col = c("red", "green", "blue", "orange"), pch = 16)
+
 
 
 ##################### 1. Analisi Temporale del Trend dell'NDVI
@@ -575,10 +741,10 @@ pca_mar <- apply_pca(bands_stack_mar)
 pca_may <- apply_pca(bands_stack_may)
 pca_jul <- apply_pca(bands_stack_jul)
 
-# Verifica delle dimensioni dei risultati PCA
+# Verifica le dimensioni dei risultati PCA
 print(dim(pca_result$x))  # Dovrebbe mostrare il numero di righe e colonne
 
-# Verifica della classe e le dimensioni del raster
+# Verifica la classe e le dimensioni del raster
 print(class(pca_jan))
 print(dim(pca_jan))
 
@@ -589,4 +755,3 @@ plot(pca_jan, main = "PCA Gennaio 2024", col = viridis(100))
 plot(pca_mar, main = "PCA Marzo 2024", col = viridis(100))
 plot(pca_may, main = "PCA Maggio 2024", col = viridis(100))
 plot(pca_jul, main = "PCA Luglio 2024", col = viridis(100))
-
