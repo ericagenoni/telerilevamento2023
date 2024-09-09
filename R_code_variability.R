@@ -1,108 +1,101 @@
-#VARIABILITY
+# VARIABILITÀ
 
-# Load the required packages
-library(raster)
-library(ggplot2)
-library(patchwork)
-install.packages("viridis")
-library(viridis)
+# Caricamento dei pacchetti necessari
+library(raster)   # Carica il pacchetto 'raster' per la gestione dei dati raster
+library(ggplot2)  # Carica il pacchetto 'ggplot2' per la creazione di grafici
+library(patchwork) # Carica il pacchetto 'patchwork' per combinare più grafici
+install.packages("viridis") # Installa il pacchetto 'viridis' per la palette di colori
+library(viridis)  # Carica il pacchetto 'viridis'
 
-# Set the working directory
-setwd("C:/Data_telerilevamento/lab")
+# Impostazione della directory di lavoro
+setwd("C:/Data_telerilevamento/lab") # Imposta la directory di lavoro
 
-# Import the image "similaun.png" from Sentinel satellite
-sen <- brick("sentinel.png")
-ncell(sen) # 633612
+# Importazione dell'immagine "similaun.png" dal satellite Sentinel
+sen <- brick("sentinel.png") # Carica l'immagine satellite come un oggetto di tipo 'brick' (multi-layer)
+ncell(sen) # Mostra il numero di celle (pixel) dell'immagine: 633612
 
-# Plot the image
-plot(sen)
-plotRGB(sen, 1, 2, 3, stretch="lin")
+# Visualizzazione dell'immagine
+plot(sen) # Disegna l'immagine
+plotRGB(sen, 1, 2, 3, stretch="lin") # Visualizza l'immagine in RGB utilizzando i canali NIR, Rosso e Verde
 
-# NIR   = 1
-# Red   = 2
-# Green = 3
+# Canali dell'immagine
+# NIR   = 1 (Infrarosso vicino)
+# Rosso = 2
+# Verde = 3
 
-# NIR on g component
-plotRGB(sen, 2, 1, 3, stretch="lin")
+# Visualizzazione dell'immagine con NIR sul componente verde
+plotRGB(sen, 2, 1, 3, stretch="lin") # Scambia i canali NIR e Rosso per osservare l'immagine con diversa combinazione
 
-# Calculate the variability over NIR
-nir <- sen[[1]]
-mean3 <- focal(nir, matrix(1/9, 3, 3), fun=mean)
-# Calculate focal values for the neightborhood of focal cells using a matrix of
-# weights, perhaps in combination with a function, mean() in this case
-plot(mean3)
+# Calcolo della variabilità sul canale NIR
+nir <- sen[[1]] # Estrae il primo layer dell'immagine (NIR)
+mean3 <- focal(nir, matrix(1/9, 3, 3), fun=mean) # Calcola la media focalizzata utilizzando una matrice 3x3
+# Calcolo dei valori focali per il vicinato delle celle focali utilizzando una matrice di pesi con la funzione mean()
+plot(mean3) # Grafica della media focalizzata
 
-sd3 <- focal(nir, matrix(1/9, 3, 3), fun=sd)
-plot(sd3)
+sd3 <- focal(nir, matrix(1/9, 3, 3), fun=sd) # Calcola la deviazione standard focalizzata utilizzando una matrice 3x3
+plot(sd3) # Grafica della deviazione standard focalizzata
 
-# Create a dataframe
-sd3_d <- as.data.frame(sd3, xy=T)
+# Creazione di un dataframe per ggplot
+sd3_d <- as.data.frame(sd3, xy=T) # Converte il raster in un dataframe con le coordinate x e y
 
-# Plot the dataframe with ggplot2
+# Creazione del grafico con ggplot2
 ggplot() +
   geom_raster(sd3_d,
-              mapping=aes(x=x, y=y, fill=layer))
+              mapping=aes(x=x, y=y, fill=layer)) # Grafico raster con le coordinate x e y e i valori della deviazione standard
 
-# Plot the dataframe with viridis
+# Creazione del grafico con la palette viridis
 ggplot() +
   geom_raster(sd3_d,
               mapping=aes(x=x, y=y, fill=layer)) +
-  scale_fill_viridis()
+  scale_fill_viridis() # Aggiunge la scala di colori 'viridis'
 
-# Cividis (colour palette)
+# Utilizzo della palette 'Cividis' (scala di colori)
 p1 <- ggplot() +
       geom_raster(sd3_d,
                   mapping=aes(x=x, y=y, fill=layer)) +
-      scale_fill_viridis(option="cividis")
+      scale_fill_viridis(option="cividis") # Utilizza la scala di colori 'cividis'
 
-# Magma (colour palette)
+# Utilizzo della palette 'Magma' (scala di colori)
 ggplot() +
 geom_raster(sd3_d,
             mapping=aes(x=x, y=y, fill=layer)) +
-scale_fill_viridis(option="magma")
+scale_fill_viridis(option="magma") # Utilizza la scala di colori 'magma'
 
-# Adding a title
+# Aggiunta di un titolo al grafico
 p2 <- ggplot() +
       geom_raster(sd3_d,
                   mapping=aes(x=x, y=y, fill=layer)) +
       scale_fill_viridis(option="magma") +
-      ggtitle("Standard Deviation Via The Magma Colour Scale")
+      ggtitle("Deviazione Standard con la Scala di Colori Magma") # Aggiunge un titolo al grafico
 
-p1 + p2
+p1 + p2 # Combina i due grafici usando 'patchwork'
 
+# Creazione di un multi-frame con patchwork
 
-
-
-
-# Create a multiframe with patchwork
-
-# Viridis
+# Grafico con la scala di colori Viridis
 p1 <- ggplot() +
       geom_raster(sd3_d,
                   mapping=aes(x=x, y=y, fill=layer)) +
       scale_fill_viridis() +
-      ggtitle("Standard Deviation Via The Viridis Colour Scale")
+      ggtitle("Deviazione Standard con la Scala di Colori Viridis")
 
-# Inferno
+# Grafico con la scala di colori Inferno
 p2 <- ggplot() +
       geom_raster(sd3_d,
                   mapping=aes(x=x, y=y, fill=layer)) +
       scale_fill_viridis(option="inferno") +
-      ggtitle("Standard Deviation Via The Inferno Colour Scale")
+      ggtitle("Deviazione Standard con la Scala di Colori Inferno")
 
-p1 + p2
+p1 + p2 # Combina i due grafici (Viridis e Inferno)
 
-
-
-
-
-# EXERCISE: Plot the original image (nir) and its standard deviation
-nir_d <- as.data.frame(nir, xy=T)
+# ESERCIZIO: Grafico dell'immagine originale (NIR) e della sua deviazione standard
+nir_d <- as.data.frame(nir, xy=T) # Converte il raster NIR in un dataframe con le coordinate x e y
 
 p3 <- ggplot() +
       geom_raster(nir_d,
                   mapping=aes(x=x, y=y, fill=sentinel_1)) +
       scale_fill_viridis(option="cividis") +
-      ggtitle("NIR Via The Viridis Colour Scale")
+      ggtitle("NIR con la Scala di Colori Viridis") # Grafico dell'immagine NIR con la palette Cividis
 
-p3 + p1
+p3 + p1 # Combina il grafico dell'immagine NIR con il grafico della deviazione standard
+
