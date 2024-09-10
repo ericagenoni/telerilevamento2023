@@ -1,6 +1,9 @@
 ################ MONITORAGGIO DEL DISSECCAMENTO DEL LAGO D'ARAL ##################
 ############## PROGETTO DI TELERILEVAMENTO GEO-ECOLOGICO - ARAL ###############
 
+# Impostazione della working directory
+setwd("C:/Esame_telerilevamento_aral")
+
 # Installazione dei packages necessari
 install.packages("raster")
 install.packages("ggplot2")
@@ -13,8 +16,6 @@ library(ggplot2)
 library(patchwork)
 library(viridis)
 
-# Impostare la working directory
-setwd("C:/Esame_telerilevamento_aral")
 
 ############# 1. IMPORTAZIONE E VISUALIZZAZIONE IMMAGINI Sentinel2 #############
 
@@ -34,31 +35,61 @@ img_2023 <- stack(import_2023)
 # Visualizzo le informazioni
 img_2023
 
+###################################Correzioni
+#disposizione ordine delle bande nella lista sbagliata, devo sostituire l'8A che 
+#è nella posizione 10 con la banda 11
+
+# Riordino le bande scambiando la Banda 8a (10) con la Banda 11 (8)
+new_import_2023 <- import_2023[c(1:7, 10, 8, 9)]
+img_2023_new <- stack(new_import_2023)
+# Visualizzo l'ordine delle bande originali
+print(seq_along(import_2023)) # Ordine originale delle bande
+# Verifico il tipo di ogni oggetto in import_2023
+sapply(import_2023, class)
+# Controllo la lista di bande riordinate
+sapply(new_import_2023, class)
+# Controllo la lunghezza della lista
+length(new_import_2023)
+# Visualizzo il contenuto della lista
+print(new_import_2023)
+
+
 # Banda 2  = blu
 # Banda 3  = verde
 # Banda 4  = rosso
-# Banda 8a = NIR
+# Banda 8a = NIR #numero nella lista [8]
+# Banda 11 = SWIR #numero lista [9]
 
 # Plot img_2023
-plot(img_2023)
+plot(img_2023_new)
 
-# Definire l'estensione dell'area di interesse (aggiorna con le coordinate reali per l'area del Lago d'Aral)
-#ext <- c(600000, 750000, 4400000, 4600000)  # Modificare con le coordinate esatte
+# Definizione delle coordinate di ritaglio
+extent_crop <- extent(744860, 764860, 5135120, 5155120)
 
-# Ritaglio l'area di interesse
-#Aral_2023 <- crop(img_2023, ext)
+# Effettuo il ritaglio
+aral_2023 <- crop(img_2023_new, extent_crop)
+
+# Visualizzo il risultato
+plot(aral_2023)
+
 
 # Plot di Aral_2023: colori reali e NIR + esportazione in .pdf
-#pdf("Aral_2023.pdf")
-#par(mfrow = c(1,2))
-#plotRGB(Aral_2023, 4, 3, 2, stretch = "lin", main = "2023_TC")
-#plotRGB(Aral_2023, 8, 4, 3, stretch = "lin", main = "2023_NIR")
-#dev.off()
+
+pdf("C:/Esame_telerilevamento_aral/aral_2023.pdf")
+par(mfrow = c(1,2))
+plotRGB(aral_2023, 4, 3, 2, stretch = "lin", main = "2023_TC")
+plotRGB(aral_2023, 8, 4, 3, stretch = "lin", main = "2023_NIR")
+dev.off()
+
+# Salvo il plot in un file PNG
+png("C:/Esame_telerilevamento_aral/aral_2023.png")
+plot(aral_2023, main="Immagine 2023")
+dev.off()
 
 ### IMMAGINI GIUGNO 2024
 
 # Creazione di una lista cercando nella woking directory elementi in comune
-rlist_2024 <- list.files(pattern = "T40TGS_20240619T104547_B")
+rlist_2024 <- list.files(pattern = "T40TGS_20240619T065631_B")
 rlist_2024
 
 # Applico la funzione raster() all'intera lista
@@ -71,314 +102,308 @@ img_2024 <- stack(import_2024)
 # Visualizzo le informazioni
 img_2024
 
-# Banda 2  = blu
-# Banda 3  = verde
+# Banda 2  = blu #numero della lista [2]
+# Banda 3  = verde 
 # Banda 4  = rosso
-# Banda 8a = NIR
+# Banda 8a = NIR #numero della lista [10]
+# Banda 11 = SWIR #numero lista [8]
 
-# Plot img_2024
-plot(img_2024)
+new_import_2024 <- import_2024[c(1:7, 10, 8, 9)]
+img_2024_new <- stack(new_import_2024)
+# Visualizzo l'ordine delle bande originali
+print(seq_along(import_2024)) # Ordine originale delle bande
+# Verifico il tipo di ogni oggetto in import_2024
+sapply(import_2024, class)
+# Controllo la lista di bande riordinate
+sapply(new_import_2024, class)
+# Controllo la lunghezza della lista
+length(new_import_2024)
+# Visualizzo il contenuto della lista
+print(new_import_2024)
 
-# Ritaglio l'area di interesse
-#Aral_2024 <- crop(img_2024, ext)
+
+# Plot img_2024_new
+plot(img_2024_new)
+
+
+# Effettuo il ritaglio
+aral_2024 <- crop(img_2024_new, extent_crop)
+
+# Visualizzo il risultato
+plot(aral_2024)
 
 # Plot di Aral_2024: colori reali e NIR + esportazione in .pdf
-#pdf("Aral_2024.pdf")
-#par(mfrow = c(1,2))
-#plotRGB(Aral_2024, 4, 3, 2, stretch = "lin", main = "2024_TC")
-#plotRGB(Aral_2024, 8, 4, 3, stretch = "lin", main = "2024_NIR")
-#dev.off()
+pdf("C:/Esame_telerilevamento_aral/aral_2024.pdf")
+par(mfrow = c(1,2))
+plotRGB(aral_2024, 4, 3, 2, stretch = "lin", main = "2024_TC")
+plotRGB(aral_2024, 8, 4, 3, stretch = "lin", main = "2024_NIR")
+dev.off()
 
-### CONFRONTO VISIVO E ANALISI DEI CAMBIAMENTI
+# Salvo il plot in un file PNG
+png("C:/Esame_telerilevamento_aral/aral_2024.png")
+plot(aral_2024, main="Immagine 2024")
+dev.off()
 
-# Colori reali
+####################### CONFRONTO VISIVO E ANALISI DEI CAMBIAMENTI
+
+# Colori reali immagine intera
+pdf("aral_Confronto_TC.pdf")
+par(mfrow = c(1,2))
+plotRGB(img_2023_new, 4, 3, 2, stretch = "lin", main = "2023_TC")
+plotRGB(img_2024_new, 4, 3, 2, stretch = "lin", main = "2024_TC")
+dev.off()
+
+# Colori reali immagine croppata
 pdf("Aral_Confronto_TC.pdf")
 par(mfrow = c(1,2))
-plotRGB(img_2024, 4, 3, 2, stretch = "lin", main = "2023_TC")
-plotRGB(img_2024, 4, 3, 2, stretch = "lin", main = "2024_TC")
+plotRGB(aral_2023, 4, 3, 2, stretch = "lin", main = "2023_TC")
+plotRGB(aral_2024, 4, 3, 2, stretch = "lin", main = "2024_TC")
 dev.off()
 
-# Colori NIR
+# Colori NIR immagine intera
 pdf("Aral_Confronto_NIR.pdf")
 par(mfrow = c(1,2))
-plotRGB(img_2024, 8, 4, 3, stretch = "lin", main = "2023_NIR")
-plotRGB(img_2024, 8, 4, 3, stretch = "lin", main = "2024_NIR")
+plotRGB(img_2023_new, 8, 4, 3, stretch = "lin", main = "2023_NIR")
+plotRGB(img_2024_new, 8, 4, 3, stretch = "lin", main = "2024_NIR")
+dev.off()
+
+# Colori  NIR immagine croppata
+pdf("Aral_Confronto_nir.pdf")
+par(mfrow = c(1,2))
+plotRGB(aral_2023, 8, 3, 2, stretch = "lin", main = "2023_NIR")
+plotRGB(aral_2024, 8, 3, 2, stretch = "lin", main = "2024_NIR")
 dev.off()
 
 
-################### 2. CALCOLO E PLOT DEGLI INDICI SPETTRALI ###################
 
+################### 2. CALCOLO E PLOT DELL' INDICE SPETTRALI ###################
 
 ### NDVI (NORMALIZED DIFFERENCE VEGETATION INDEX)
 
-# Calcolo del DVI (Difference Vegetation Index)
-# DVI = NIR - rosso
-DVI_2023 <- Aral_2023[[8]] - Aral_2023[[4]]
-DVI_2024 <- Aral_2024[[8]] - Aral_2024[[4]]
+# Calcolo dell'NDVI per il 2023 e il 2024
+NDVI_2023 <- (aral_2023[[8]] - aral_2023[[4]]) / (aral_2023[[8]] + aral_2023[[4]])
+NDVI_2024 <- (aral_2024[[8]] - aral_2024[[4]]) / (aral_2024[[8]] + aral_2024[[4]])
+
+length(NDVI_2023)
+length(NDVI_2024)
 
 # Creazione di una palette di colori
-cl <- colorRampPalette(c("blue","darkgrey","yellow"))(100)
-
-# Plot DVI
-pdf("DVI_Confronto.pdf")
-par(mfrow = c(1,2))
-plot(DVI_2023, col = cl, main = "DVI 2023")
-plot(DVI_2024, col = cl, main = "DVI 2024")
-dev.off()
-
-# Calcolo del NDVI (Normalized Difference Vegetation Index)
-# NDVI = (NIR - rosso) / (NIR + rosso) = DVI / (NIR + rosso)
-NDVI_2023 <- DVI_2023 / (Aral_2023[[8]] + Aral_2023[[4]])
-NDVI_2024 <- DVI_2024 / (Aral_2024[[8]] + Aral_2024[[4]])
+cl_ndvi <- colorRampPalette(c("blue","darkgrey","yellow"))(100)
 
 # Plot NDVI
-pdf("NDVI_Confronto.pdf")
-par(mfrow = c(1,2))
-plot(NDVI_2023, col = cl, main = "NDVI 2023")
-plot(NDVI_2024, col = cl, main = "NDVI 2024")
-dev.off()
+pdf("NDVI_Confronto.pdf") 
+plot(NDVI_2023, col = cl_ndvi, main = "NDVI 2023")  # Plotta NDVI 2023
+plot(NDVI_2024, col = cl_ndvi, main = "NDVI 2024")  # Plotta NDVI 2024
+
+dev.off() 
 
 # Calcolo la differenza fra NDVI 2023 e NDVI 2024
 NDVI_diff <- NDVI_2024 - NDVI_2023
 
+length(NDVI_diff)
+
 # Plot di NDVI_diff + esportazione in .pdf
 pdf("NDVI_Differenza.pdf")
-plot(NDVI_diff, col = cl, main = "Differenza NDVI (2024 - 2023)")
+plot(NDVI_diff, col = cl_ndvi, main = "Differenza NDVI (2024 - 2023)")
+dev.off() 
+
+
+##################
+#################### 6. TEST T PER CONFRONTARE NDVI 2023 E NDVI 2024 ####################
+
+# Estrazione dei valori NDVI per il 2023 e il 2024
+valori_ndvi_2023 <- getValues(NDVI_2023)
+valori_ndvi_2024 <- getValues(NDVI_2024)
+
+# Rimozione dei valori NA per evitare problemi nel test t
+valori_ndvi_2023 <- na.omit(valori_ndvi_2023)
+valori_ndvi_2024 <- na.omit(valori_ndvi_2024)
+
+# Verifica che entrambi i vettori abbiano dimensioni compatibili
+if(length(valori_ndvi_2023) != length(valori_ndvi_2024)) {
+  stop("I vettori NDVI per il 2023 e il 2024 non hanno la stessa lunghezza. Assicurati che le immagini siano allineate.")
+}
+
+# Calcolo del test t per campioni accoppiati
+test_t <- t.test(valori_ndvi_2023, valori_ndvi_2024, paired = TRUE)
+
+# Stampa dei risultati del test t
+print(test_t)
+
+# Creazione di un PDF per visualizzare i risultati del test t
+pdf("Test_T_NDVI_2023_vs_NDVI_2024.pdf")
+
+# Plot dei valori NDVI per il 2023 e il 2024
+par(mfrow = c(1, 2))
+
+# Istogramma dei valori NDVI per il 2023
+hist(valori_ndvi_2023, main = "Distribuzione NDVI 2023", xlab = "NDVI", col = "blue", breaks = 50)
+
+# Istogramma dei valori NDVI per il 2024
+hist(valori_ndvi_2024, main = "Distribuzione NDVI 2024", xlab = "NDVI", col = "red", breaks = 50)
+
+# Chiudo il PDF
 dev.off()
 
-# GRIGIO: 
-# GIALLO: 
-# BLU:    
+# Visualizzazione dei risultati del test t
+cat("Risultati del test t:\n")
+cat("Valore p:", test_t$p.value, "\n")
+cat("Statistiche t:", test_t$statistic, "\n")
+cat("Media NDVI 2023:", mean(valori_ndvi_2023), "\n")
+cat("Media NDVI 2024:", mean(valori_ndvi_2024), "\n")
+cat("Differenza media:", test_t$estimate, "\n")
 
 
-################### 3. CALCOLO E PLOT DELL'INDICE MDWI ###################
-
-
-### MDWI (MODIFIED NORMALIZED DIFFERENCE WATER INDEX)
-
-# Calcolo dell'MDWI
-# MDWI = (Green - SWIR) / (Green + SWIR)
-MDWI_2023 <- (Aral_2023[[3]] - Aral_2023[[11]]) / (Aral_2023[[3]] + Aral_2023[[11]])
-MDWI_2024 <- (Aral_2024[[3]] - Aral_2024[[11]]) / (Aral_2024[[3]] + Aral_2024[[11]])
-
-# Creazione di una palette di colori per la visualizzazione
-cl_mdwi <- colorRampPalette(c("brown", "white", "blue"))(100)
-
-# Plot MDWI per il 2023 e il 2024
-pdf("MDWI_Confronto.pdf")
-par(mfrow = c(1,2))
-plot(MDWI_2023, col = cl_mdwi, main = "MDWI 2023")
-plot(MDWI_2024, col = cl_mdwi, main = "MDWI 2024")
-dev.off()
-
-# Calcolo della differenza tra MDWI del 2023 e del 2024
-MDWI_diff <- MDWI_2024 - MDWI_2023
-
-# Plot della differenza di MDWI + esportazione in .pdf
-pdf("MDWI_Differenza.pdf")
-plot(MDWI_diff, col = cl_mdwi, main = "Differenza MDWI (2024 - 2023)")
-dev.off()
-
-# MARRONE: aree con differenza negativa di MDWI (potenziale riduzione dell'acqua)
-# BIANCO: aree con differenza di MDWI nulla (nessun cambiamento evidente)
-# BLU: aree con differenza positiva di MDWI (potenziale aumento dell'acqua)
-
-
-### VERIFICO SE NDVI_def E MDWI_diff DIFFERISCONO SIGNIFICATIVAMENTE
-
-# Plot di NDVI_def e MDWI_diff + esportazione in .pdf
-pdf("NDVI_def_MDWI_diff.pdf")
-par(mfrow = c(1,2))
-plot(NDVI_def, col = cl, main = "NDVI_def")
-plot(MDWI_diff, col = cl_mdwi, main = "MDWI_diff")
-dev.off()
-
-# Eseguo un T-test su NDVI_def e MDWI_diff
-t_result <- t.test(NDVI_def[], MDWI_diff[], paired = TRUE)
-t_result
-
-
-#################### 3. PCA (PRINCIPAL COMPONENT ANALYSIS) #####################
-
-# Imposto il seme del generatore di numeri casuali
-set.seed(1)
-
-# Unisco gli indici NDVI_def e MDWI_diff in un unico oggetto
-box_aral <- stack(NDVI_def, MDWI_diff)
-
-# Plot per visualizzare la differenza tra gli indici
-plot(box_aral, main = "Differenze fra NDVI_def e MDWI_diff", xaxt = "n", yaxt = "n")
-
-# Effettuo un campionamento casuale di 10000 pixel da box_aral
-sr_aral <- sampleRandom(box_aral, 10000)
-
-# Effettuo la PCA (Principal Component Analysis)
-PCA_aral <- prcomp(sr_aral)
-
-# Visualizzazione delle informazioni relative alla PCA
-summary(PCA_aral)
-
-# Plot della varianza spiegata da ciascuna delle componenti
-plot(PCA_aral, main = "Varianza spiegata da ciascuna componente")
-
-# Proiezione dell'oggetto box_aral nello spazio creato precedentemente usando le CP
-PCI_aral <- predict(box_aral, PCA_aral, index = 1:2)
-
-# Plot della PC1
-plot(PCI_aral[[1]], main = "Prima Componente Principale (PC1)")
-
-# Conversione di PC1 in un dataframe per la visualizzazione con ggplot2
-PC_fin_aral <- as.data.frame(PCI_aral[[1]], xy = TRUE)
-
-# Creazione del plot usando ggplot2
-plot_PCA_aral <- ggplot() + 
-  geom_raster(data = PC_fin_aral, mapping = aes(x = x, y = y, fill = PC1)) + 
-  scale_fill_viridis(option = "magma") +
-  labs(title = "PC1 per il Lago d'Aral")
-
-# Esportazione del plot in un file .pdf
-pdf("PC1_Aral.pdf")
-print(plot_PCA_aral)
-dev.off()
-
+#Il valore p è 0.01749, che è inferiore al comune livello di significatività di 
+#0.05. Questo suggerisce che c'è una differenza statistica significativa tra i 
+#valori NDVI del 2023 e del 2024. In altre parole, la differenza osservata tra
+#i due anni non è probabilmente dovuta al caso.
 
 #################### 4. LAND COVER ####################
 
 ### CLASSIFICAZIONE IMMAGINI GIUGNO 2023 ###
 
-# Estrazione dei valori dalle immagini del 2023
-single_nr_2023 <- getValues(Sal_2023)
-single_nr_2023 <- na.omit(single_nr_2023)  # Rimuovo i valori NA per evitare problemi nel clustering
+#Classificazione dell'immagine NDVI_2023
+# Prima di tutto, estraggo i valori dell'indice NDVI per la classificazione
+single_nr_2023 <- getValues(NDVI_2023)
 
-# Classificazione con 3 classi (suolo, acqua, vegetazione)
-k_cluster_2023 <- kmeans(single_nr_2023, centers=3)
+# Classificazione con 2 classi (suolo, acqua)
+k_cluster_2023 <- kmeans(single_nr_2023, centers = 2)
 k_cluster_2023
 
 # Creazione di una mappa di classificazione basata sui cluster
-Sal_2023_class <- setValues(Sal_2023[[1]], k_cluster_2023$cluster)
+NDVI_2023_class <- setValues(NDVI_2023, k_cluster_2023$cluster)
 
-# Creazione di una palette di colori per 3 classi
-cl_freq <- c("blue", "green", "yellow")
+# Creazione di una palette di colori per 2 classi
+color_palette <- c("blue", "yellow")
 
 # Plot della classificazione
-plot(Sal_2023_class, col = cl_freq, main = "Classificazione Immagine Giugno 2023")
+pdf("Classificazione_NDVI_2023.pdf")
+plot(NDVI_2023_class, col = color_palette, main = "Classificazione NDVI Giugno 2023")
+dev.off()
 
-# Calcolo delle frequenze
-freq_2023 <- freq(Sal_2023_class)
+# Calcolo delle frequenze dei cluster
+freq_2023 <- freq(NDVI_2023_class)
 freq_2023
 
-# Calcolo pixel totali
-tot <- ncell(Sal_2023_class)
-tot
+# Calcolo del numero totale di pixel
+total_pixels <- ncell(NDVI_2023_class)
+total_pixels
 
-# Calcolo delle percentuali
-perc_2023 <- round((freq_2023 * 100) / tot, digit=5)
+# Calcolo delle percentuali di ciascuna classe
+perc_2023 <- round((freq_2023[, 2] * 100) / total_pixels, digits = 5)
 perc_2023
 
+# Stampa delle percentuali per ogni classe
+cat("Percentuali di copertura per ciascuna classe:\n")
+cat("Classe 1:", perc_2023[1], "%\n")
+cat("Classe 2:", perc_2023[2], "%\n")
 
 ### CLASSIFICAZIONE IMMAGINI GIUGNO 2024 ###
 
 # Estrazione dei valori dalle immagini del 2024
-single_nr_2024 <- getValues(Sal_2024)
-single_nr_2024 <- na.omit(single_nr_2024)  # Rimuovo i valori NA per evitare problemi nel clustering
+single_nr_2024 <- getValues(NDVI_2024)
 
-# Classificazione con 3 classi (suolo, acqua, vegetazione)
-k_cluster_2024 <- kmeans(single_nr_2024, centers=3)
+# Classificazione con 2 classi (suolo, acqua)
+k_cluster_2024 <- kmeans(single_nr_2024, centers = 2)
 k_cluster_2024
 
 # Creazione di una mappa di classificazione basata sui cluster
-Sal_2024_class <- setValues(Sal_2024[[1]], k_cluster_2024$cluster)
+
+Sal_2024_class <- setValues(NDVI_2024, k_cluster_2024$cluster)
 
 # Plot della classificazione
-plot(Sal_2024_class, col = cl_freq, main = "Classificazione Immagine Giugno 2024")
+pdf("Classificazione_NDVI_2024.pdf")
+plot(Sal_2024_class, col = color_palette, main = "Classificazione Immagine Giugno 2024")
+dev.off()
 
 # Calcolo delle frequenze
 freq_2024 <- freq(Sal_2024_class)
 freq_2024
 
-# Calcolo delle percentuali
-perc_2024 <- round((freq_2024 * 100) / tot, digit=5)
+# Calcolo del numero totale di pixel
+total_pixels_2024 <- ncell(Sal_2024_class)
+
+# Calcolo delle percentuali di ciascuna classe
+perc_2024 <- round((freq_2024[, 2] * 100) / total_pixels_2024, digits = 5)
 perc_2024
+
+# Stampa delle percentuali per ogni classe
+cat("Percentuali di copertura per ciascuna classe nel 2024:\n")
+cat("Classe 1:", perc_2024[1], "%\n")
+cat("Classe 2:", perc_2024[2], "%\n")
 
 ### COMPARAZIONE TRA LE CLASSIFICAZIONI 2023 E 2024 ###
 
 # Creazione di una palette di colori per visualizzare le differenze
-cl_diff <- c("blue", "green", "yellow")
+
+color_palette <- c("blue", "yellow")
 
 # Plot delle classificazioni affiancate
 pdf("Classificazione_comparativa_2023_2024.pdf")
-par(mfrow = c(1, 2))
-plot(Sal_2023_class, col = cl_diff, main = "Classificazione Giugno 2023")
-plot(Sal_2024_class, col = cl_diff, main = "Classificazione Giugno 2024")
+par(mfrow = c(1, 2))  
+
+# Plot della classificazione per Giugno 2023
+plot(NDVI_2023_class, col = color_palette, main = "Classificazione Giugno 2023")
+
+# Plot della classificazione per Giugno 2024
+plot(Sal_2024_class, col = color_palette, main = "Classificazione Giugno 2024")
+
 dev.off()
 
-# Calcolo delle differenze
-diff_class <- abs(Sal_2023_class - Sal_2024_class)
+# Calcolo delle differenze tra le classificazioni
+
+diff_class <- abs(NDVI_2023_class - Sal_2024_class)
 
 # Plot delle differenze
 pdf("Differenze_classificazione_2023_2024.pdf")
 plot(diff_class, main = "Differenze tra Classificazione Giugno 2023 e Giugno 2024", col = viridis::viridis(10))
 dev.off()
 
-
-
 ### VISUALIZZAZIONE DEI RISULTATI
 
+# Mostra i risultati delle percentuali
 perc_2023
-#
-
 perc_2024
-#
+
 
 #################### 5. CREAZIONE DEL DATAFRAME CON I RISULTATI DELLA CLASSIFICAZIONE ####################
 
-# Creazione dei vettori per i dati di copertura vegetale
-copertura_vegetale <- c("buona", "ridotta/assente", "acqua")
-P_2023 <- c(67.17314, 32.82686, 0)  # Supponiamo che tu abbia i dati per il 2023
-P_2024 <- c(60.12345, 35.54321, 4.33334)  # Supponiamo che tu abbia i dati per il 2024
+# La classe 1 è "acqua" 
+# Obiettivo-> trovare la percentuale di copertura dell'acqua per ciascun anno
 
-# Creazione del dataframe
-Land_cover_perc <- data.frame(copertura_vegetale, P_2023, P_2024)
+# Imposto acqua index
+
+acqua_index <- 1
+
+# Percentuali di copertura per l'acqua
+P_acqua_2023 <- perc_2023[acqua_index]
+P_acqua_2024 <- perc_2024[acqua_index]
+
+# Creazione del dataframe con solo le percentuali di copertura dell'acqua
+copertura_acqua <- data.frame(
+  Anno = c("2023", "2024"),
+  Percentuale_Acqua = c(P_acqua_2023, P_acqua_2024)
+)
 
 # Visualizzazione del dataframe
-print(Land_cover_perc)
+print(copertura_acqua)
 
-#################### PLOTE DELLE PERCENTUALI DI LAND COVER + ESPORTAZIONE IN .pdf ####################
+#################### PLOTE DELLE PERCENTUALI DI COPERTURA DELL'ACQUA + ESPORTAZIONE IN .pdf ####################
 
-# Creazione della palette di colori
-cl_barplot <- c("buona" = "blue", "ridotta/assente" = "yellow", "acqua" = "cyan")
+# Creazione della palette di colori per il barplot
+cl_barplot <- c("acqua" = "cyan")
 
-# Plot per il 2023
-pdf("Percentuali_Land_Cover_2023.pdf")
-plot_2023 <- ggplot(Land_cover_perc, aes(x = copertura_vegetale, y = P_2023, fill = copertura_vegetale)) +
-  geom_bar(stat = "identity") +
+# Plot per il 2023 e 2024
+pdf("Percentuali_Acqua.pdf")
+plot_acqua <- ggplot(copertura_acqua, aes(x = Anno, y = Percentuale_Acqua, fill = "acqua")) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
   scale_fill_manual(values = cl_barplot) +
-  labs(x = "Land Cover", y = "%", title = "Land Cover 2023") +
-  theme(legend.position = "none") +
+  labs(x = "Anno", y = "%", title = "Percentuale di Copertura dell'Acqua") +
   ylim(0, 100) +
-  geom_text(aes(label = sprintf("%.2f%%", P_2023), y = P_2023), 
+  geom_text(aes(label = sprintf("%.2f%%", Percentuale_Acqua), y = Percentuale_Acqua), 
             position = position_stack(vjust = 0.5), size = 4)
+print(plot_acqua)
 dev.off()
 
-# Plot per il 2024
-pdf("Percentuali_Land_Cover_2024.pdf")
-plot_2024 <- ggplot(Land_cover_perc, aes(x = copertura_vegetale, y = P_2024, fill = copertura_vegetale)) +
-  geom_bar(stat = "identity") +
-  scale_fill_manual(values = cl_barplot) +
-  labs(x = "Land Cover", y = "%", title = "Land Cover 2024") +
-  theme(legend.position = "none") +
-  ylim(0, 100) +
-  geom_text(aes(label = sprintf("%.2f%%", P_2024), y = P_2024), 
-            position = position_stack(vjust = 0.5), size = 4)
-dev.off()
 
-# Unione dei plot in un unico grafico
-library(gridExtra)
-
-# Creazione di un'unica immagine con entrambi i plot
-final_plot <- grid.arrange(plot_2023, plot_2024, nrow = 1)
-
-# Esportazione del grafico finale in .pdf
-pdf("Final_Plot.pdf")
-print(final_plot)
-dev.off()
